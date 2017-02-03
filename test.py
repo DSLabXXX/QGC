@@ -57,7 +57,7 @@ list_u = list()
 list_i = list()
 list_r = list()
 if test_type == 1:
-    with open('/home/chtai/MyProjects/PycharmProjects/QGC/TestData/simpleGraph_new.txt') as f:
+    with open('TestData/simpleGraph_new.txt') as f:
         for line in f:
             ls = line.split()
             list_u.append(float(ls[0])-1)

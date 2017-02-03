@@ -16,6 +16,19 @@ log = logging.getLogger('test.QGC.VC')
 np.set_printoptions(threshold=100000, linewidth=1000)
 
 
+def MaxOfMatrix(X):
+    """ Finding MAX value and indices of MATRIX. """
+    """[[-10.0000  , -0.2772 ,  -0.2962  , -0.6079],
+  [ -0.2772 , -10.0000  , -0.1342 ,  -0.2789],
+   [-0.2962  , -0.1342 , -10.0000  , -0.3121],
+   [-0.6079  , -0.2789,   -0.3121  ,-10.0000]]"""
+    (h, w) = X.shape
+    index = np.argmax(X)
+    row = index // w
+    col = index % w
+    return np.max(X), row, col
+
+
 def VectorClustering(weight_eigvec, K, threshold):
     p = 10
     topP = 3
@@ -52,9 +65,8 @@ def VectorClustering(weight_eigvec, K, threshold):
         # print('vecZ\n', vecZ.astype(int))
         oPhi *= vecZ.reshape(vecZ.shape[0], 1).astype(int)
         # print('oPhi2\n', oPhi)
-
     matPartitionLabel = np.array(matPartitionLabel).T
-    log.info('\n{0}'.format(matPartitionLabel))
+    log.info('matPartitionLabel =\n{0}'.format(matPartitionLabel))
 
     """ Initialize the similarity matrix """
     G = matPartitionLabel.shape[1]
@@ -101,8 +113,15 @@ def VectorClustering(weight_eigvec, K, threshold):
            - Twitter data: matClusterSim >= 0.9
     """
 
+    s = (matClusterSim >= threshold)
+    n = np.sum(s)
+    (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
+    print('ssssssssssssssss', matPartitionLabel[:, max_x])
     # while (X > K & & K > 0) | | (nnz(matClusterSim >= threshold) > 0 & & K == 0)
     while (X > K > 0) or (np.sum(matClusterSim >= threshold) > 0 and K == 0):
-        # Choose the most similar eigenvectors and merge them
+        # Choose the most similar eigen vectors and merge them
+        (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
+        # vecMerge = (matPartitionLabel(:, max_x) + matPartitionLabel(:, max_y)) > 0;
+        vecMerge = matPartitionLabel[:, max_x] + matPartitionLabel[:, max_y]
         pass
 
