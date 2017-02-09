@@ -18,10 +18,12 @@ np.set_printoptions(threshold=100000, linewidth=1000)
 
 def MaxOfMatrix(X):
     """ Finding MAX value and indices of MATRIX. """
-    """[[-10.0000  , -0.2772 ,  -0.2962  , -0.6079],
-  [ -0.2772 , -10.0000  , -0.1342 ,  -0.2789],
-   [-0.2962  , -0.1342 , -10.0000  , -0.3121],
-   [-0.6079  , -0.2789,   -0.3121  ,-10.0000]]"""
+    """
+    [[-10.0000  , -0.2772 ,  -0.2962  , -0.6079],
+    [ -0.2772 , -10.0000  , -0.1342 ,  -0.2789],
+    [-0.2962  , -0.1342 , -10.0000  , -0.3121],
+    [-0.6079  , -0.2789,   -0.3121  ,-10.0000]]
+    """
     (h, w) = X.shape
     index = np.argmax(X)
     row = index // w
@@ -32,6 +34,9 @@ def MaxOfMatrix(X):
 def VectorClustering(weight_eigvec, K, threshold):
     p = 10
     topP = 3
+    centroid_types = ['mean', 'power mean', 'top-P', 'ndist']
+    cent_type = centroid_types[2]
+
     H = weight_eigvec.shape[1]
 
     scale_weight_eigvec = np.array([np.dot(i, i.T) for i in weight_eigvec]).reshape(weight_eigvec.shape[0], 1)
@@ -96,7 +101,7 @@ def VectorClustering(weight_eigvec, K, threshold):
     G = centroids.shape[0]
     matClusterSim = np.zeros((G, G))
 
-    """ % non-model prior """
+    """ non-model prior """
     matClusterSim = np.dot(centroids, centroids.T)
     scale_cluster = np.sqrt(np.diag(matClusterSim))
     matClusterSim = matClusterSim / scale_cluster
@@ -115,13 +120,64 @@ def VectorClustering(weight_eigvec, K, threshold):
 
     s = (matClusterSim >= threshold)
     n = np.sum(s)
-    (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
-    print('ssssssssssssssss', matPartitionLabel[:, max_x])
-    # while (X > K & & K > 0) | | (nnz(matClusterSim >= threshold) > 0 & & K == 0)
+
     while (X > K > 0) or (np.sum(matClusterSim >= threshold) > 0 and K == 0):
+    # for i in range(1):
         # Choose the most similar eigen vectors and merge them
         (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
-        # vecMerge = (matPartitionLabel(:, max_x) + matPartitionLabel(:, max_y)) > 0;
         vecMerge = matPartitionLabel[:, max_x] + matPartitionLabel[:, max_y]
-        pass
+
+        """
+            delete column index max_x and max_y from  matPartitionLabel.
+            merge them and put in final column.
+        """
+        print('matPartitionLabel before \n', matPartitionLabel)
+        matPartitionLabel = np.delete(matPartitionLabel, [max_x, max_y], 1)
+        vecMerge = vecMerge.reshape(vecMerge.shape[0], 1)
+        matPartitionLabel = np.hstack(([matPartitionLabel, vecMerge]))
+        print('matPartitionLabelmatPartitionLabelmatPartitionLabel:\n', matPartitionLabel)
+
+        """ Update the similarity matrix """
+        G = matPartitionLabel.shape[1]
+        centroids = np.zeros((G, H))
+        cent_norm = np.zeros((G, 1))
+        for i in range(G):
+            x = matPartitionLabel[:, i].nonzero()[0]
+            y = matPartitionLabel[:, i][matPartitionLabel[:, i].nonzero()]  # 疑似用不到
+
+            if cent_type == 'top-P':
+                """ mean of the top-P nodes to be centroid """
+                print('scale_weight_eigvec[x]:\n', scale_weight_eigvec[x].T[0])
+                tmp_eigvec = scale_weight_eigvec[x].T[0]
+                if tmp_eigvec.shape[0] >= topP:
+                    x1 = np.argpartition(tmp_eigvec, -topP)[-topP:]
+                else:
+                    x1 = np.argpartition(tmp_eigvec, -tmp_eigvec.shape[0])[-tmp_eigvec.shape[0]:]
+
+                """ 0207 HERE """
+                centroid2 = np.mean(weight_eigvec[x[x1]], axis=0)
+                # print('weight_eigvec[x[x1]]:\n', weight_eigvec[x[x1]], '\ncentroid2: ', centroid2, )
+                cent_norm[i] = np.linalg.norm(centroid2)
+                # print(cent_norm)
+                centroid2 /= np.linalg.norm(centroid2)
+                print('centroid2:\n', centroid2)
+                centroids[i] = centroid2
+                print('centroids:\n', centroids)
+        # end for
+        matClusterSim = np.zeros(G)
+        if cent_type == 'ndist':
+            pass
+        else:
+            """ non - model prior """
+            matClusterSim = np.dot(centroids, centroids.T)
+            scale_cluster = np.sqrt(np.diag(matClusterSim))
+            scale_cluster = np.array([1, 1, 10, 1])
+            """ [:,None] 為了做./ matClusterSim = bsxfun(@rdivide, matClusterSim, scale_cluster) """
+            matClusterSim /= scale_cluster.T[:, None]
+            matClusterSim /= scale_cluster.T
+            matClusterSim -= 10 * np.eye(G)
+        # end if
+        matClusterSim -= np.eye(G)
+        X = len(matClusterSim)
+    # end while
 
