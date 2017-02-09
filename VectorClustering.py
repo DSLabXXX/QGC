@@ -104,31 +104,28 @@ def VectorClustering(weight_eigvec, K, threshold):
     """ non-model prior """
     matClusterSim = np.dot(centroids, centroids.T)
     scale_cluster = np.sqrt(np.diag(matClusterSim))
-    matClusterSim = matClusterSim / scale_cluster
-    matClusterSim = matClusterSim / scale_cluster
-
+    matClusterSim /= scale_cluster.T[:, None]
+    matClusterSim /= scale_cluster.T
     matClusterSim -= np.eye(G)
-    # print(np.eye(G))
-    # print('matClusterSim5\n{0}'.format(matClusterSim))
     X = len(matClusterSim)
 
     """
         Hierarchical agglomerative clustering greedily
-           - Facebook data: matClusterSim >= -0.02
-           - Twitter data: matClusterSim >= 0.9
+
+        Facebook data: matClusterSim >= -0.02
+        Twitter data: matClusterSim >= 0.9
     """
 
     s = (matClusterSim >= threshold)
     n = np.sum(s)
 
     while (X > K > 0) or (np.sum(matClusterSim >= threshold) > 0 and K == 0):
-    # for i in range(1):
-        # Choose the most similar eigen vectors and merge them
+        """ Choose the most similar eigen vectors and merge them """
         (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
         vecMerge = matPartitionLabel[:, max_x] + matPartitionLabel[:, max_y]
 
         """
-            delete column index max_x and max_y from  matPartitionLabel.
+            delete column by index max_x and max_y from matPartitionLabel.
             merge them and put in final column.
         """
         # print('matPartitionLabel before \n', matPartitionLabel)
@@ -168,17 +165,30 @@ def VectorClustering(weight_eigvec, K, threshold):
         if cent_type == 'ndist':
             pass
         else:
-            """ non - model prior """
+            """ non-model prior """
             matClusterSim = np.dot(centroids, centroids.T)
             scale_cluster = np.sqrt(np.diag(matClusterSim))
-            print('matClusterSim:\n', matClusterSim)
-            print('scale_cluster.T:\n', scale_cluster.T)
+            # print('matClusterSim:\n', matClusterSim)
+            # print('scale_cluster.T:\n', scale_cluster.T)
             """ [:,None] 為了做./ matClusterSim = bsxfun(@rdivide, matClusterSim, scale_cluster) """
             matClusterSim /= scale_cluster.T[:, None]
             matClusterSim /= scale_cluster.T
             matClusterSim -= 10 * np.eye(G)
         # end if
         matClusterSim -= np.eye(G)
+        print('matClusterSim:\n', matClusterSim)
         X = len(matClusterSim)
     # end while
+    """
+        Determine which cluster a data belongs to
+
+        Kmeans
+
+        [a, c] = kmeans(weight_eigvec, K, 'emptyaction', 'drop');
+
+        HAC, and then inner product of data and centroid
+
+    """
+
+
 
