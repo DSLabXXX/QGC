@@ -108,8 +108,8 @@ def VectorClustering(weight_eigvec, K, threshold):
     matClusterSim = matClusterSim / scale_cluster
 
     matClusterSim -= np.eye(G)
-    print(np.eye(G))
-    print('matClusterSim5\n{0}'.format(matClusterSim))
+    # print(np.eye(G))
+    # print('matClusterSim5\n{0}'.format(matClusterSim))
     X = len(matClusterSim)
 
     """
@@ -131,11 +131,11 @@ def VectorClustering(weight_eigvec, K, threshold):
             delete column index max_x and max_y from  matPartitionLabel.
             merge them and put in final column.
         """
-        print('matPartitionLabel before \n', matPartitionLabel)
+        # print('matPartitionLabel before \n', matPartitionLabel)
         matPartitionLabel = np.delete(matPartitionLabel, [max_x, max_y], 1)
         vecMerge = vecMerge.reshape(vecMerge.shape[0], 1)
         matPartitionLabel = np.hstack(([matPartitionLabel, vecMerge]))
-        print('matPartitionLabelmatPartitionLabelmatPartitionLabel:\n', matPartitionLabel)
+        # print('matPartitionLabelmatPartitionLabelmatPartitionLabel:\n', matPartitionLabel)
 
         """ Update the similarity matrix """
         G = matPartitionLabel.shape[1]
@@ -147,7 +147,7 @@ def VectorClustering(weight_eigvec, K, threshold):
 
             if cent_type == 'top-P':
                 """ mean of the top-P nodes to be centroid """
-                print('scale_weight_eigvec[x]:\n', scale_weight_eigvec[x].T[0])
+                # print('scale_weight_eigvec[x]:\n', scale_weight_eigvec[x].T[0])
                 tmp_eigvec = scale_weight_eigvec[x].T[0]
                 if tmp_eigvec.shape[0] >= topP:
                     x1 = np.argpartition(tmp_eigvec, -topP)[-topP:]
@@ -160,9 +160,9 @@ def VectorClustering(weight_eigvec, K, threshold):
                 cent_norm[i] = np.linalg.norm(centroid2)
                 # print(cent_norm)
                 centroid2 /= np.linalg.norm(centroid2)
-                print('centroid2:\n', centroid2)
+                # print('centroid2:\n', centroid2)
                 centroids[i] = centroid2
-                print('centroids:\n', centroids)
+                # print('centroids:\n', centroids)
         # end for
         matClusterSim = np.zeros(G)
         if cent_type == 'ndist':
@@ -171,7 +171,8 @@ def VectorClustering(weight_eigvec, K, threshold):
             """ non - model prior """
             matClusterSim = np.dot(centroids, centroids.T)
             scale_cluster = np.sqrt(np.diag(matClusterSim))
-            scale_cluster = np.array([1, 1, 10, 1])
+            print('matClusterSim:\n', matClusterSim)
+            print('scale_cluster.T:\n', scale_cluster.T)
             """ [:,None] 為了做./ matClusterSim = bsxfun(@rdivide, matClusterSim, scale_cluster) """
             matClusterSim /= scale_cluster.T[:, None]
             matClusterSim /= scale_cluster.T
