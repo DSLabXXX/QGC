@@ -11,6 +11,8 @@ import numpy as np
 import logging.config
 from heapq import nlargest
 import itertools
+from scipy.sparse import coo_matrix
+from spIdentityMinus import *
 
 log = logging.getLogger('test.QGC.VC')
 np.set_printoptions(threshold=100000, linewidth=1000)
@@ -151,7 +153,6 @@ def VectorClustering(weight_eigvec, K, threshold):
                 else:
                     x1 = np.argpartition(tmp_eigvec, -tmp_eigvec.shape[0])[-tmp_eigvec.shape[0]:]
 
-                """ 0207 HERE """
                 centroid2 = np.mean(weight_eigvec[x[x1]], axis=0)
                 # print('weight_eigvec[x[x1]]:\n', weight_eigvec[x[x1]], '\ncentroid2: ', centroid2, )
                 cent_norm[i] = np.linalg.norm(centroid2)
@@ -187,8 +188,29 @@ def VectorClustering(weight_eigvec, K, threshold):
         [a, c] = kmeans(weight_eigvec, K, 'emptyaction', 'drop');
 
         HAC, and then inner product of data and centroid
-
     """
+    index = np.dot(weight_eigvec, centroids.T)
+    # print('index:\n', index)
+    scale_centroid = np.diag(np.dot(centroids, centroids.T))
+    # print('scale_centroid:\n', scale_centroid)
+    index /= np.sqrt(scale_weight_eigvec)
+    # print('index /= np.sqrt(scale_weight_eigvec):\n', index)
+    index /= np.sqrt(scale_centroid).T
+    # print('index /= np.sqrt(scale_centroid).T:\n', index)
+    y = np.argmax(index, axis=1)
+    n = len(y)
+    # print('y:\n', y)
+    oPhi = coo_matrix((np.ones(n), (np.arange(n), y)), shape=(n, centroids.shape[1])).tocsr()
+    # print('oPhi:\n', oPhi)
+    sum_oPhi = np.sum(oPhi, axis=0).tolist()[0]
+    # print('sum_oPhi:', sum_oPhi)
+    for i in range(len(sum_oPhi)):
+        if sum_oPhi[len(sum_oPhi)-1-i] == 0:
+            print('index of sum_oPhi:', len(sum_oPhi)-1-i)
+            # np.delete(oPhi, len(sum_oPhi)-1-i, 1)
+            oPhi = del_sp_col(oPhi, len(sum_oPhi)-1-i)
+    K = oPhi.shape[1]
+    return oPhi, K
 
 
 
