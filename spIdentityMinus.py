@@ -21,14 +21,14 @@ def del_sp_row_col(mat, idx):
     return d_row * mat * d_col
 
 
-def mk_eye(idx, N, type):
+def mk_eye(idx, N, axis_type):
     # idx is row or col index for delete
     # N is shape[0] of mat
-    # type 1: row, 2: col
+    # axis_type 1: row, 2: col
     x = list()
     y = list()
     value = list()
-    if type == 1:
+    if axis_type == 1:
         shape = (N-1, N)
     else:
         shape = (N, N-1)
@@ -40,7 +40,7 @@ def mk_eye(idx, N, type):
         elif i == idx:
             pass
         elif i > idx:
-            if type == 1:
+            if axis_type == 1:
                 x.append(i-1)
                 y.append(i)
             else:
@@ -50,6 +50,13 @@ def mk_eye(idx, N, type):
     s = sps.coo_matrix((value, (x, y)), shape=shape).tocsr()
     # print(s.todense())
     return s
+
+
+def sp_insert_rows(mtx_a, mtx_to_insert, idx):
+    mtx_tmp_first = mtx_a[:idx, :]
+    mtx_tmp_last = mtx_a[idx:, :]
+    return sps.vstack([mtx_tmp_first, mtx_to_insert, mtx_tmp_last])
+
 
 if __name__ == '__main__':
     a = sps.lil_matrix(np.array([[1,2,3],[4,5,6],[7,8,9]])).tocsr()
