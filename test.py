@@ -91,9 +91,9 @@ if test_type == 1:
 
 
 """ Set the queries and their relevance """
-for q in queries:
+for query in queries:
 
-    if q < 0:
+    if query < 0:
         continue
 
     """ if the query is isolated, ignore it. """
@@ -101,9 +101,9 @@ for q in queries:
     #     continue
 
     """ Get the relevance vector """
-    if q >= 0:
-        vecRel = oneQ_pagerank(matB, q, 0.5)
-        vecRel[q, 0] = 0
+    if query >= 0:
+        vecRel = oneQ_pagerank(matB, query, 0.5)
+        vecRel[query, 0] = 0
     else:
         vecRel = np.ones((n, 0)) / n
 
@@ -117,7 +117,8 @@ for q in queries:
     """ Algorithm: QGC5_QGC(Query-oriented spectral clustering)"""
     if act_QOGC_QGC == 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
-        QGC(matG, maxitr, q, K, 3, vecRel, 0, -0.02, 100)
+        # QGC_batch(matG, maxitr, q, K, 3, vecRel, 0, -0.02, 100)
+        QGC_batch(matG, maxitr, vecRel, query, K, 3, topN)
     #     [iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2,
     #      QGC_NCut_BestRel2, vecPerform3, QGC_vecBestPerform3, QGC_NCut_BestRel3] = QOGC_QGC_batch(query, K, 3, topN)
     #     c_size1 = sum(full(vecPerform1))

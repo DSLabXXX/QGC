@@ -14,7 +14,7 @@ from scipy.sparse import spdiags
 import logging.config
 from scipy.sparse import lil_matrix, coo_matrix
 import numpy as np
-from spIdentityMinus import del_sp_row_col
+from spIdentityMinus import del_sp_row_col, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator
 from VectorClustering import VectorClustering
 
@@ -22,11 +22,29 @@ log = logging.getLogger('test.QGC')
 np.set_printoptions(threshold=100000, linewidth=1000)
 
 
+def QGC_batch(matG, maxitr, vecRel, query, K, H, M):
+    rank_type = 'eigXrel'
+    """ QGC without clustering balance constraint """
+    ok = False
+    time = 0
+    while not ok and time < 5:
+        time += 1
+
+        (weight_eigvec, vecQ) = QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
+
+
+
+
+
+        ok = True
+
 def QGC(matG,  maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     N = matG.shape[0]
+    oPhi = 0
+    weight_eigvec = 0
 
     """ Initial setting """
-    max_clustering_itr = 1 # 200
+    max_clustering_itr = 1  # 200
 
     zeta = 0.05
     q_size = 1
@@ -87,7 +105,6 @@ def QGC(matG,  maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         rel = vecRel
     # print(matG_SC)
 
-
     def myGG(x):
         # print('x shape', x.shape)
         tmp = x - np.dot(rel, (np.dot(rel.T, x)))
@@ -123,22 +140,39 @@ def QGC(matG,  maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
 
         """ ----------------- check line ------------------------------------------------ """
 
-        # """ Label assignment  """
+        """ Label assignment  """
         log.debug('(eigVal + 10e-5)\n{0}'.format(eigVal + 10e-5))
         weight_eigvec = np.dot(weight_eigvec, (eigVal + 10e-5))
         log.info('weight_eigvec\n{0}'.format(weight_eigvec))
-        # oPhi, K = VectorClustering(weight_eigvec, K, threshold)
-        VectorClustering(weight_eigvec, K, threshold)
+        (oPhi, K) = VectorClustering(weight_eigvec, K, threshold)
+
+        """ ↓↓↓↓↓↓↓↓↓↓↓↓ 0210 HERE  ↓↓↓↓↓↓↓↓↓↓↓↓ """
+        # sizePhi = sum(oPhi)
+        sizePhi = np.sum(oPhi, axis=0).tolist()[0]
+        print('sizePhi:', sizePhi)
+        if 0 not in sizePhi:
+            kmeans_run = False
+
+    """ Insert the query into the clustering result """
+    if query >= 0:
+        mtx_zeros = lil_matrix(np.zeros([1, K])).tocsr()
+        vecQ = sp_insert_rows(oPhi, mtx_zeros, query)
+        print('vecQQQQQQ"\n', vecQ.todense())
+    else:
+        vecQ = oPhi
+
+    return weight_eigvec, vecQ
 
 
 if __name__ == '__main__':
-    import numpy as np
-    vecRel = np.array([[5],
-              [8],
-              [9],
-              [3],
-              [7]])
-    vecRel = vecRel.reshape(1, 5)
-    # vecRel = [5,8,9,3,7]
-    s = spdiags(vecRel[:], 0, 5, 5)
-    print(s.todense())
+    # import numpy as np
+    # vecRel = np.array([[5],
+    #           [8],
+    #           [9],
+    #           [3],
+    #           [7]])
+    # vecRel = vecRel.reshape(1, 5)
+    # # vecRel = [5,8,9,3,7]
+    # s = spdiags(vecRel[:], 0, 5, 5)
+    # print(s.todense())
+    pass
