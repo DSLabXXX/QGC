@@ -1,15 +1,3 @@
-"""
-Function: QOGC_QGC
-This function performs Query-oriented Graph Clustering.
---------------------------------------------------------------------------------------
-query: queryID
-K: the number of clustering. (K = 0 ===> auto-determine the number of clusters K)
-H: the top-H eigenvectors are obtained for clustering
-vecRel: relevance vector
-MyLancType: approach selection index
-eta: is used only when MyLancType = 2, often set to a huge value
-"""
-
 from scipy.sparse import spdiags
 import logging.config
 from scipy.sparse import lil_matrix, coo_matrix
@@ -17,12 +5,13 @@ import numpy as np
 from spIdentityMinus import del_sp_row_col, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator
 from VectorClustering import VectorClustering
+from QOCut import QOCut
 
 log = logging.getLogger('test.QGC')
 np.set_printoptions(threshold=100000, linewidth=1000)
 
 
-def QGC_batch(matG, maxitr, vecRel, query, K, H, M):
+def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
     rank_type = 'eigXrel'
     """ QGC without clustering balance constraint """
     ok = False
@@ -32,13 +21,44 @@ def QGC_batch(matG, maxitr, vecRel, query, K, H, M):
 
         (weight_eigvec, vecQ) = QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
 
-
-
-
+        if len(M) > 1:
+            print('還沒做完1')
+            NCut_BestRel = np.zeros([len(M), 1])
+            vecBestPerform = np.zeros([N, K, len(M)])
+            vecPerform1 = np.zeros([N, K, len(M)])
+            for i in M:
+                [A_NCut_BestRel, A_vecBestPerform, A_vecPerform1] = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel,
+                                                                          rank_type, [i, 'TotalN'])
+                # NCut_BestRel(i) = A_NCut_BestRel
+                # vecBestPerform(:,:, i) = A_vecBestPerform
+                # vecPerform1(:,:, i) = A_vecPerform1
+        elif M[0] > 0:
+            print('還沒做完2')
+        else:
+            # (NCut_BestRel, vecBestPerform, vecPerform1) = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type)
+            QOCut(matG, N, query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type, [])
 
         ok = True
 
-def QGC(matG,  maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
+
+def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
+    """
+    Function: QOGC_QGC
+    This function performs Query-oriented Graph Clustering.
+    --------------------------------------------------------------------------------------
+    :param matG:
+    :param maxitr:
+    :param query: queryID
+    :param K: the number of clustering. (K = 0 ===> auto-determine the number of clusters K)
+    :param H: the top-H eigenvectors are obtained for clustering
+    :param vecRel: relevance vector
+    :param MyLancType: approach selection index
+    :param threshold:
+    :param eta: is used only when MyLancType = 2, often set to a huge value
+
+    :return: weight_eigvec :
+    :return: vecQ :
+    """
     N = matG.shape[0]
     oPhi = 0
     weight_eigvec = 0
