@@ -1,12 +1,3 @@
-"""
-    % Function: VectorClustering
-    % This function is to cluster obtained eigenvectors in the eigenspace.
-    % Notice that the similarity is defined as Cosine Similarity.
-    % The scale of a vector represents its 'strength'.
-    %--------------------------------------------------------------------------------------
-    % weight_eigvec: weighted eigenvectors
-    % K: the number of clustering. (K = 0 ===> auto-determine the number of clusters K)
-"""
 import numpy as np
 import logging.config
 from heapq import nlargest
@@ -34,6 +25,17 @@ def MaxOfMatrix(X):
 
 
 def VectorClustering(weight_eigvec, K, threshold):
+    """
+    % Function: VectorClustering
+    % This function is to cluster obtained eigenvectors in the eigenspace.
+    % Notice that the similarity is defined as Cosine Similarity.
+    % The scale of a vector represents its 'strength'.
+    --------------------------------------------------------------------------------------
+    :param weight_eigvec: weighted eigenvectors
+    :param K: the number of clustering. (K = 0 ===> auto-determine the number of clusters K)
+    :param threshold:
+    :return:
+    """
     p = 10
     topP = 3
     centroid_types = ['mean', 'power mean', 'top-P', 'ndist']
