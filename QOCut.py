@@ -36,20 +36,23 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
 
     """ Ranking score is according to the relevance """
 
-    """ 做不出點乘 用了一個蠢方法 eye * values 感覺就超慢 FK... """
+    """
+    做不出點乘 用了一個蠢方法 eye * values (func 2)
+    直接multiply 轉成dense 後再轉回sparse (func 1)
+    func 1 矩陣小時較快
+    func 2 矩陣大到一定程度 ex (50000, 300) 才會快過func 1
+    """
     print('vecLabel:\n', vecLabel.todense())
 
-    # st = time.time()
-    d = lil_matrix((N, N))
-    d.setdiag(vecRel)
-    vecPerform = d * vecLabel
-    # print('eye * values: ', time.time() - st)
+    # func 2
+    # d = lil_matrix((N, N))
+    # d.setdiag(vecRel)
+    # vecPerform = d * vecLabel
+
+    # func 1
+    vecPerform = csr_matrix(vecLabel.multiply(vecRel))
     print('vecPerform:\n', vecPerform.todense())
-    """ but 另一個更慢 fk... """
-    # st = time.time()
-    # vecPerform = csr_matrix(vecLabel.multiply(vecRel))
-    # print('multiply: ', time.time() - st)
-    # print('vecPerform:\n', vecPerform.todense())
+
     """ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 02 / 16 check line ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ """
 
     if len(list_m) > 0:
@@ -71,5 +74,5 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
     else:
         """ the idea is the same with NCut """
         # vecPerform_sum = ones(1, N) * (repmat(vecRel, [1, K]). * (matG * vecPerform))
-        # vecPerform_sum = np.ones((1, N)) * (repmat(vecRel, [1, K]).* (matG * vecPerform))
+        # vecPerform_sum = np.ones((1, N)) * (np.tile(vecRel, [1, K]) .* (matG * vecPerform))
 
