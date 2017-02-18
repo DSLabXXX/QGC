@@ -49,8 +49,8 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
     # d.setdiag(vecRel)
     # vecPerform = d * vecLabel
 
-    # func 1
-    vecPerform = csr_matrix(vecLabel.multiply(vecRel))
+    # func 1 (改進 + csr_matrix)
+    vecPerform = vecLabel.multiply(csr_matrix(vecRel))
     print('vecPerform:\n', vecPerform.todense())
 
     """ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 02 / 16 check line ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ """
@@ -73,6 +73,26 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
         pass
     else:
         """ the idea is the same with NCut """
-        # vecPerform_sum = ones(1, N) * (repmat(vecRel, [1, K]). * (matG * vecPerform))
-        # vecPerform_sum = np.ones((1, N)) * (np.tile(vecRel, [1, K]) .* (matG * vecPerform))
 
+        """ sparse ver. for vecPerform_sum """
+        # vecPerform_sum = csr_matrix(np.ones((1, N))) * csr_matrix(np.tile(vecRel, [1, K])).multiply(matG * vecPerform)
+
+        """ dense(ndarray) ver. for vecPerform_sum """
+        vecPerform_sum = np.dot(np.ones((1, N)), np.multiply(np.tile(vecRel, [1, K]), (matG * vecPerform).A))
+        print('vecPerform_sumvecPerform_sumvecPerform_sum:\n', vecPerform_sum)
+
+        # Normalization
+        # vecPerform_norm = vecPerform ./ np.tile(vecPerform_sum, [N, 1])
+        vecPerform_norm = vecPerform / np.tile(vecPerform_sum, [N, 1])
+        print('np.tile(vecPerform_sum, [N, 1]:\n', vecPerform_norm)
+
+        """ Calculate Cut """
+        vecTemp = np.tile(vecRel, [1, K]) * (matG * vecPerform_norm).A - 10e5 * vecPerform_norm
+        vecTemp[vecTemp < 0] = 0
+        print('vecTemp:\n', vecTemp)
+        NCut_rel = np.sum(np.sum(vecTemp))
+        print('NCut_rel:', NCut_rel)
+    # end if
+
+    """ Ranking for each cluster """
+    # eigIndex = insertrows(weight_eigvec, zeros(1, size(weight_eigvec, 2)), query - 1)
