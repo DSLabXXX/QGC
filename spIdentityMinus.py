@@ -1,5 +1,5 @@
 import numpy as np
-import scipy.sparse as sps
+from scipy import sparse
 
 
 def del_sp_row(mat, row_idx):
@@ -47,7 +47,7 @@ def mk_eye(idx, N, axis_type):
                 x.append(i)
                 y.append(i-1)
             value.append(1)
-    s = sps.coo_matrix((value, (x, y)), shape=shape).tocsr()
+    s = sparse.coo_matrix((value, (x, y)), shape=shape).tocsr()
     # print(s.todense())
     return s
 
@@ -55,11 +55,11 @@ def mk_eye(idx, N, axis_type):
 def sp_insert_rows(mtx_a, mtx_to_insert, idx):
     mtx_tmp_first = mtx_a[:idx, :]
     mtx_tmp_last = mtx_a[idx:, :]
-    return sps.vstack([mtx_tmp_first, mtx_to_insert, mtx_tmp_last])
+    return sparse.vstack([mtx_tmp_first, mtx_to_insert, mtx_tmp_last])
 
 
 if __name__ == '__main__':
-    a = sps.lil_matrix(np.array([[1,2,3],[4,5,6],[7,8,9]])).tocsr()
+    a = sparse.lil_matrix(np.array([[1,2,3],[4,5,6],[7,8,9]])).tocsr()
 
     print('original:\n', a.todense())
     print('delete col&row by index=1:\n', del_sp_row_col(a, 1).todense())
