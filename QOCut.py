@@ -1,6 +1,7 @@
 import numpy as np
-from scipy.sparse import coo_matrix, lil_matrix, eye, csr_matrix
+from scipy.sparse import coo_matrix, lil_matrix, eye, csr_matrix, find
 import time
+from spIdentityMinus import sp_insert_rows
 
 
 def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, list_m):
@@ -96,3 +97,33 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
 
     """ Ranking for each cluster """
     # eigIndex = insertrows(weight_eigvec, zeros(1, size(weight_eigvec, 2)), query - 1)
+    eigIndex = sp_insert_rows(weight_eigvec, np.zeros((1, weight_eigvec.shape[1])), query).tocsr()
+    print('eigIndex:\n', eigIndex.todense())
+
+    if rank_type == 'rel':
+        pass
+    elif rank_type == 'eig':
+        pass
+    elif rank_type == 'eigXrel':
+        """ according to the (eigenvector .* releance) """
+        vecRankScore = csr_matrix(np.zeros((N, K)))
+
+        for i in range(K):
+            [x, y, z] = find(vecQ[:, i])
+
+            if len(x) > 1:
+                mean_vec = eigIndex[x, :].mean(axis=0)
+            else:
+                mean_vec = eigIndex[x, :]
+            print('mean_vec:', mean_vec)
+            tmp = eigIndex * mean_vec.T
+            print('tmp:\n', tmp)
+            vecRankScore[:, i] = vecQ[:, i].multiply(tmp)
+        vecRankScore = vecRankScore.multiply(csr_matrix(vecRel))
+        print('vecRankScore:\n', vecRankScore.todense())
+        # vecRankScore = bsxfun( @ times, vecRankScore, vecRel);
+
+    elif rank_type == 'eigXrel2':
+        pass
+    elif rank_type == 'eig+rel':
+        pass
