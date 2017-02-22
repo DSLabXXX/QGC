@@ -23,6 +23,8 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
     :return: vecBestPerform :
     :return: vecPerform1 :
     """
+    NCut_rel = 0
+    vecRankScore = 0
     K = vecQ.shape[1]
     if len(list_m) > 0:
         M, m_type = list_m[0], list_m[1]
@@ -127,3 +129,5 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
         pass
     elif rank_type == 'eig+rel':
         pass
+
+    return NCut_rel, vecRankScore, vecPerform
