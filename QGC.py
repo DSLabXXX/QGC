@@ -1,6 +1,6 @@
 from scipy.sparse import spdiags
 import logging.config
-from scipy.sparse import lil_matrix, coo_matrix
+from scipy.sparse import lil_matrix
 import numpy as np
 from spIdentityMinus import del_sp_row_col, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator

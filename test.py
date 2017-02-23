@@ -1,11 +1,10 @@
 import numpy as np
 from scipy.sparse import coo_matrix, eye
-from sp_normalize import *
-from pagerank import *
+from sp_normalize import SCNomalization
+from pagerank import oneQ_pagerank
 from QGC import *
 import logging
 import logging.config
-import time
 import math
 
 """ ---------------- init log config -------------------"""

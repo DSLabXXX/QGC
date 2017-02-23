@@ -3,7 +3,7 @@ import logging.config
 from heapq import nlargest
 import itertools
 from scipy.sparse import coo_matrix
-from spIdentityMinus import *
+from spIdentityMinus import del_sp_col
 
 log = logging.getLogger('test.QGC.VC')
 np.set_printoptions(threshold=100000, linewidth=1000)

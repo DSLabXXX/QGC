@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.sparse import coo_matrix, lil_matrix, eye, csr_matrix, find
-import time
+from scipy.sparse import csr_matrix, find
 from spIdentityMinus import sp_insert_rows
 
 
