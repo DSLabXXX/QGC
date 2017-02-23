@@ -118,11 +118,13 @@ for query in queries:
     if act_QOGC_QGC == 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
-        QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
+        (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
 
-        # c_size1 = sum(full(vecPerform1))
-        # c_size2 = sum(full(vecPerform2))
-        # c_size3 = sum(full(vecPerform3))
+        c_size1 = vecPerform1.sum(axis=0)
+        c_size2 = vecPerform2.sum(axis=0)
+        print('c_size1:', c_size1)
+        # entropy_QGC1 = funcEntropy(c_size1')
+        # entropy_QGC2 = funcEntropy(c_size2')
 
     #     [iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2,
     #      QGC_NCut_BestRel2, vecPerform3, QGC_vecBestPerform3, QGC_NCut_BestRel3] = QOGC_QGC_batch(query, K, 3, topN)

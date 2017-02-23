@@ -19,7 +19,7 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
     while not ok and time < 5:
         time += 1
 
-        (weight_eigvec, vecQ) = QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
+        (weight_eigvec, vecQ) = QGC(matG, maxitr, query, K, 3, vecRel, 1, -0.02, 100)
 
         if len(M) > 1:
             print('還沒做完1')
@@ -41,6 +41,8 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
 
         if len(vecQ.sum(axis=0).nonzero()[0]) == K:
             ok = True
+    NCut_BestRel, vecBestPerform, vecPerform1 = NCut_BestRel2, vecBestPerform2, vecPerform2
+    return weight_eigvec, vecQ, vecPerform1, vecBestPerform, NCut_BestRel, vecPerform2, vecBestPerform2, NCut_BestRel2
 
 
 def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
