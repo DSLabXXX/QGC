@@ -6,6 +6,8 @@ from QGC import *
 import logging
 import logging.config
 import time
+import math
+
 """ ---------------- init log config -------------------"""
 log = logging.getLogger('test')
 log.setLevel(logging.DEBUG)
@@ -25,8 +27,14 @@ log.addHandler(file_hdlr)
 log.addHandler(console_hdlr)
 
 log.info('QGC start')
-# ----------------------------------------------------
+# ------------------- end log config -----------------------
 
+
+def func_entropy(v):
+    """ Calculate the entropy of the given vector v """
+    tmp = (v / np.sum(v))
+    ret = [math.log(i) for i in tmp.tolist()[0]] * -tmp.T
+    return ret.tolist()[0]
 
 alpha = 0.1
 t = 10
@@ -122,7 +130,9 @@ for query in queries:
 
         c_size1 = vecPerform1.sum(axis=0)
         c_size2 = vecPerform2.sum(axis=0)
+        entropy_QGC1 = func_entropy(c_size1)
         print('c_size1:', c_size1)
+        print('entropy_QGC1:', entropy_QGC1)
         # entropy_QGC1 = funcEntropy(c_size1')
         # entropy_QGC2 = funcEntropy(c_size2')
 
