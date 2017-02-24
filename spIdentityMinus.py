@@ -22,21 +22,25 @@ def del_sp_row_col(mat, idx):
 
 
 def mk_eye(idx, N, axis_type):
-    # idx is row or col index for delete
-    # N is shape[0] of mat
-    # axis_type 1: row, 2: col
+    """
+    :param idx: row or col index for delete
+    :param N: shape[0] of mat
+    :param axis_type: 1: row, 2: col
+    :return:
+    """
     x = list()
     y = list()
-    value = list()
+    # value = list()
     if axis_type == 1:
         shape = (N-1, N)
     else:
         shape = (N, N-1)
+    value = np.ones(N-1)
     for i in range(N):
         if i < idx:
             x.append(i)
             y.append(i)
-            value.append(1)
+            # value.append(1)
         elif i == idx:
             pass
         elif i > idx:
@@ -46,7 +50,7 @@ def mk_eye(idx, N, axis_type):
             else:
                 x.append(i)
                 y.append(i-1)
-            value.append(1)
+            # value.append(1)
     s = sparse.coo_matrix((value, (x, y)), shape=shape).tocsr()
     # print(s.todense())
     return s

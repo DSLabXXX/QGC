@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.sparse import coo_matrix, eye
 from sp_normalize import SCNomalization
 from pagerank import oneQ_pagerank
@@ -6,6 +5,8 @@ from QGC import *
 import logging
 import logging.config
 import math
+import numpy as np
+import time
 
 """ ---------------- init log config -------------------"""
 log = logging.getLogger('test')
@@ -79,9 +80,9 @@ e = len(list_u)
 matG = coo_matrix((list_r, (list_u, list_i)), shape=(n, n)).tocsr()
 matG = matG + matG.transpose()
 
+st = time.time()
 """ Create symmetric normalized matrix A of G """
 matA, matB = SCNomalization(matG)
-
 
 matI = eye(n, n)
 xi = 0.2
@@ -132,6 +133,7 @@ for query in queries:
         entropy_QGC1 = func_entropy(c_size1)
         print('c_size1:', c_size1)
         print('entropy_QGC1:', entropy_QGC1)
+        print('process time: ', time.time() - st)
         # entropy_QGC1 = funcEntropy(c_size1')
         # entropy_QGC2 = funcEntropy(c_size2')
 

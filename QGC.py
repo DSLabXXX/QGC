@@ -1,6 +1,6 @@
 from scipy.sparse import spdiags
 import logging.config
-from scipy.sparse import lil_matrix
+from scipy.sparse import csr_matrix
 import numpy as np
 from spIdentityMinus import del_sp_row_col, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator
@@ -27,7 +27,7 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
             vecBestPerform = np.zeros([N, K, len(M)])
             vecPerform1 = np.zeros([N, K, len(M)])
             for i in M:
-                [A_NCut_BestRel, A_vecBestPerform, A_vecPerform1] = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel,
+                (A_NCut_BestRel, A_vecBestPerform, A_vecPerform1) = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel,
                                                                           rank_type, [i, 'TotalN'])
                 # NCut_BestRel(i) = A_NCut_BestRel
                 # vecBestPerform(:,:, i) = A_vecBestPerform
@@ -68,7 +68,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     weight_eigvec = 0
 
     """ Initial setting """
-    max_clustering_itr = 1  # 200
+    max_clustering_itr = 200  # 1  # 200
 
     zeta = 0.05
     q_size = 1
@@ -173,15 +173,15 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         """ ↓↓↓↓↓↓↓↓↓↓↓↓ 0210 HERE  ↓↓↓↓↓↓↓↓↓↓↓↓ """
         # sizePhi = sum(oPhi)
         sizePhi = np.sum(oPhi, axis=0).tolist()[0]
-        print('sizePhi:', sizePhi)
+        # print('sizePhi:', sizePhi)
         if 0 not in sizePhi:
             kmeans_run = False
 
     """ Insert the query into the clustering result """
     if query >= 0:
-        mtx_zeros = lil_matrix(np.zeros([1, K])).tocsr()
+        mtx_zeros = csr_matrix(np.zeros([1, K]))
         vecQ = sp_insert_rows(oPhi, mtx_zeros, query)
-        print('vecQQQQQQ"\n', vecQ.todense())
+        # print('vecQQQQQQ"\n', vecQ.todense())
     else:
         vecQ = oPhi
 

@@ -61,7 +61,7 @@ def SCNomalization(matrix):
     vecVal = [1. / (x ** 0.5) for x in vecVal]
     vecPosX = vecPosX.tolist()
 
-    matrixD = coo_matrix((vecVal, (vecPosX, vecPosX)), shape=(valVeretxIDMax, valVeretxIDMax))
+    matrixD = coo_matrix((vecVal, (vecPosX, vecPosX)), shape=(valVeretxIDMax, valVeretxIDMax)).tocsr()
 
     matrixRet = matrixD * matrix * matrixD
     matrixC = matrix * matrixD * matrixD

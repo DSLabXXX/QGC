@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def oneQ_pagerank(mat, q, alpha):
     n = mat.shape[0]
     if q == -1:

@@ -179,7 +179,7 @@ def VectorClustering(weight_eigvec, K, threshold):
             matClusterSim -= 10 * np.eye(G)
         # end if
         matClusterSim -= np.eye(G)
-        print('matClusterSim:\n', matClusterSim)
+        # print('matClusterSim:\n', matClusterSim)
         X = len(matClusterSim)
     # end while
     """

@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import csr_matrix, find
+from scipy.sparse import csr_matrix, lil_matrix, find
 from spIdentityMinus import sp_insert_rows
 
 
@@ -44,7 +44,7 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
     func 1 矩陣小時較快
     func 2 矩陣大到一定程度 ex (50000, 300) 才會快過func 1
     """
-    print('vecLabel:\n', vecLabel.todense())
+    # print('vecLabel:\n', vecLabel.todense())
 
     # func 2
     # d = lil_matrix((N, N))
@@ -53,7 +53,7 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
 
     # func 1 (改進 + csr_matrix)
     vecPerform = vecLabel.multiply(csr_matrix(vecRel))
-    print('vecPerform:\n', vecPerform.todense())
+    # print('vecPerform:\n', vecPerform.todense())
 
     """ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 02 / 16 check line ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ """
 
@@ -81,25 +81,25 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
 
         """ dense(ndarray) ver. for vecPerform_sum """
         vecPerform_sum = np.dot(np.ones((1, N)), np.multiply(np.tile(vecRel, [1, K]), (matG * vecPerform).A))
-        print('vecPerform_sumvecPerform_sumvecPerform_sum:\n', vecPerform_sum)
+        # print('vecPerform_sumvecPerform_sumvecPerform_sum:\n', vecPerform_sum)
 
         # Normalization
         # vecPerform_norm = vecPerform ./ np.tile(vecPerform_sum, [N, 1])
         vecPerform_norm = vecPerform / np.tile(vecPerform_sum, [N, 1])
-        print('np.tile(vecPerform_sum, [N, 1]:\n', vecPerform_norm)
+        # print('np.tile(vecPerform_sum, [N, 1]:\n', vecPerform_norm)
 
         """ Calculate Cut """
         vecTemp = np.tile(vecRel, [1, K]) * (matG * vecPerform_norm).A - 10e5 * vecPerform_norm
         vecTemp[vecTemp < 0] = 0
-        print('vecTemp:\n', vecTemp)
+        # print('vecTemp:\n', vecTemp)
         NCut_rel = np.sum(np.sum(vecTemp))
-        print('NCut_rel:', NCut_rel)
+        # print('NCut_rel:', NCut_rel)
     # end if
 
     """ Ranking for each cluster """
     # eigIndex = insertrows(weight_eigvec, zeros(1, size(weight_eigvec, 2)), query - 1)
     eigIndex = sp_insert_rows(weight_eigvec, np.zeros((1, weight_eigvec.shape[1])), query).tocsr()
-    print('eigIndex:\n', eigIndex.todense())
+    # print('eigIndex:\n', eigIndex.todense())
 
     if rank_type == 'rel':
         pass
@@ -107,7 +107,7 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
         pass
     elif rank_type == 'eigXrel':
         """ according to the (eigenvector .* releance) """
-        vecRankScore = csr_matrix(np.zeros((N, K)))
+        vecRankScore = lil_matrix(np.zeros((N, K)))
 
         for i in range(K):
             [x, y, z] = find(vecQ[:, i])
@@ -116,12 +116,12 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
                 mean_vec = eigIndex[x, :].mean(axis=0)
             else:
                 mean_vec = eigIndex[x, :]
-            print('mean_vec:', mean_vec)
+            # print('mean_vec:', mean_vec)
             tmp = eigIndex * mean_vec.T
-            print('tmp:\n', tmp)
+            # print('tmp:\n', tmp)
             vecRankScore[:, i] = vecQ[:, i].multiply(tmp)
         vecRankScore = vecRankScore.multiply(csr_matrix(vecRel))
-        print('vecRankScore:\n', vecRankScore.todense())
+        # print('vecRankScore:\n', vecRankScore.todense())
         # vecRankScore = bsxfun( @ times, vecRankScore, vecRel);
 
     elif rank_type == 'eigXrel2':
