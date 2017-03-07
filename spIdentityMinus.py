@@ -62,6 +62,29 @@ def sp_insert_rows(mtx_a, mtx_to_insert, idx):
     return sparse.vstack([mtx_tmp_first, mtx_to_insert, mtx_tmp_last])
 
 
+def csr_zero_rows(csr, rows_to_zero):
+    """ provide by @Jaime on stack overflow : http://stackoverflow.com/a/19800305 """
+    rows, cols = csr.shape
+    mask = np.ones((rows,), dtype=np.bool)
+    mask[rows_to_zero] = False
+    nnz_per_row = np.diff(csr.indptr)
+
+    mask = np.repeat(mask, nnz_per_row)
+    nnz_per_row[rows_to_zero] = 0
+    csr.data = csr.data[mask]
+    csr.indices = csr.indices[mask]
+    csr.indptr[1:] = np.cumsum(nnz_per_row)
+
+
+def csr_row_set_nz_to_val(csr, row, value=0):
+    """Set all nonzero elements (elements currently in the sparsity pattern)
+    to the given value. Useful to set to 0 mostly.
+    """
+    if not isinstance(csr, sparse.csr_matrix):
+        raise ValueError('Matrix given must be of CSR format.')
+    csr.data[csr.indptr[row]:csr.indptr[row + 1]] = value
+
+
 if __name__ == '__main__':
     a = sparse.lil_matrix(np.array([[1,2,3],[4,5,6],[7,8,9]])).tocsr()
 
