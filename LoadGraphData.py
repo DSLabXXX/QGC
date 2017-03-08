@@ -2,6 +2,10 @@ from scipy.sparse import coo_matrix, csr_matrix
 import numpy as np
 from spIdentityMinus import csr_zero_rows, csr_row_set_nz_to_val
 import time
+import math
+
+
+# np.set_printoptions(threshold=100000, linewidth=1000)
 
 
 def load_graph_data(fp):
@@ -68,31 +72,27 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
     matIT = coo_matrix((np.ones(len(list_t)), (list_i, list_t))).tocsr()
     print(matIT.shape)
 
-    """ for test """
-    # matIT = csr_matrix([[4, 0, 0, 0, 12],
-    #                     [1, 0, 1, 0, 0],
-    #                     [1, 0, 0, 0, 1],
-    #                     [1, 3, 1, 3, 5],
-    #                     [0, 5, 0, 5, 2]])
+    """ for testing """
+    # matIT = csr_matrix([[6, 0, 0, 0, 17], [4, 5, 0, 6, 4], [0, 2, 3, 1, 3],
+    #                     [1, 0, 1, 0, 0], [0, 8, 8, 0, 1]])
     # print(matIT.todense())
+    # print(matIT.nnz)
 
     if graphtype == 'i':
         """ 還沒做好.... """
         """ Prune unpopular tags """
-        tagFreq = sum(matIT)
-
-        tooSmall = tagFreq < lowerBound
-
-        tagFreq[:, tooSmall.nonzero()[1]] = 0
+        # tagFreq = sum(matIT)
+        #
+        # tooSmall = tagFreq < lowerBound
+        #
+        # tagFreq[:, tooSmall.nonzero()[1]] = 0
         # csr_zero_rows(matIT, tooSmall.nonzero()[1])
-
-        """ Prune too popular items """
-        threshold = np.mean(tagFreq) + upperbound * np.std(tagFreq)
-        for idx in range(len(tagFreq)):
-            if tagFreq[0, idx] < threshold:
-                # csr_row_set_nz_to_val(matIT, idx)
-                pass
-
+        #
+        # """ Prune too popular items """
+        # threshold = np.mean(tagFreq) + upperbound * np.std(tagFreq)
+        # for idx in range(len(tagFreq)):
+        #     if tagFreq[0, idx] < threshold:
+        #         csr_row_set_nz_to_val(matIT, idx)
     elif graphtype == 't':
         """ Prune unpopular items """
         itemFreq = sum(matIT.T).A
@@ -104,9 +104,29 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
 
         """ Prune too popular items """
         threshold = np.mean(itemFreq) + upperbound * np.std(itemFreq)
-        for idx in range(len(itemFreq)):
-            if itemFreq[0, idx] < threshold:
-                csr_row_set_nz_to_val(matIT, idx)
+        list_to_rm = list()
+        for idx in range(itemFreq.shape[1]):
+            if itemFreq[0, idx] > threshold:
+                list_to_rm.append(idx)
+        csr_zero_rows(matIT, list_to_rm)
+
+    """ reweight the influence of a tag / item based on TFIDF. """
+    matLargeThan1 = matIT > 0
+    print('matIT.nnz:\n', matIT.nnz)
+    print('matLargeThan1.nnz:\n', matLargeThan1.nnz)
+
+    if graphtype == 't':
+        tmp = np.sum(matLargeThan1, axis=1)
+        tmp = tmp.reshape(tmp.shape[0]).tolist()[0]
+        vecItem_pop = np.array([math.log2(i+2) for i in tmp])
+        """ 除完會變成ndarray.matrix FK """
+        matIT /= vecItem_pop.reshape(vecItem_pop.shape[0], 1)
+        matIT = csr_matrix(matIT)
+        # print('matIT.shape:\n{0}\nmatIT /= vecItem_pop:\n{1}'.format(matIT.shape, matIT))
+
+        """ 03/08 寫到這 QQ """
+        matrixVertex = matIT.T * matIT
+
 
 
 if __name__ == '__main__':

@@ -80,6 +80,7 @@ def csr_row_set_nz_to_val(csr, row, value=0):
     """Set all nonzero elements (elements currently in the sparsity pattern)
     to the given value. Useful to set to 0 mostly.
     """
+    """ 此法有bug 做完nnz沒變 """
     if not isinstance(csr, sparse.csr_matrix):
         raise ValueError('Matrix given must be of CSR format.')
     csr.data[csr.indptr[row]:csr.indptr[row + 1]] = value
