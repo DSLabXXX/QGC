@@ -7,6 +7,7 @@ import logging.config
 import math
 import numpy as np
 import time
+from LoadGraphData import load_graph_data
 
 """ ---------------- init log config -------------------"""
 log = logging.getLogger('test')
@@ -61,24 +62,11 @@ act_QOGC_SC = 0
 queries = list()
 
 """ load data matG """
-list_u = list()
-list_i = list()
-list_r = list()
 if test_type == 1:
-    with open('TestData/simpleGraph_new.txt') as f:
-        for line in f:
-            ls = line.split()
-            list_u.append(float(ls[0])-1)
-            list_i.append(float(ls[1])-1)
-            list_r.append(1.)
-log.info('list_u : {0}'.format(list_u))
-log.info('list_i : {0}'.format(list_i))
+    (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
+elif test_type == 2:
+    (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
 
-n = int(max(max(list_u), max(list_i))+1)
-e = len(list_u)
-
-matG = coo_matrix((list_r, (list_u, list_i)), shape=(n, n)).tocsr()
-matG = matG + matG.transpose()
 
 st = time.time()
 """ Create symmetric normalized matrix A of G """
