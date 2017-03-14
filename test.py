@@ -7,7 +7,7 @@ import logging.config
 import math
 import numpy as np
 import time
-from LoadGraphData import load_graph_data
+from LoadGraphData import load_graph_data, load_graph_UIT
 
 """ ---------------- init log config -------------------"""
 log = logging.getLogger('test')
@@ -42,7 +42,7 @@ t = 10
 maxitr = 200
 
 """ Test Type => 1: toy graph; 2: UIT graph; 3: UIT graph; 4: DBLP graph """
-test_type = 1
+test_type = 2
 
 """ Re-read => 0: not re-read; 1: re-read """
 # reread = 1
@@ -65,7 +65,7 @@ queries = list()
 if test_type == 1:
     (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
 elif test_type == 2:
-    (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
+    (matG, n, e) = load_graph_UIT('TestData/tags.dat', 'TestData/user_taggedartists.dat', 't', 5, 10)
 
 
 st = time.time()
@@ -81,6 +81,8 @@ matA = (1-xi) * matA + xi * matI
 """ Test """
 if test_type == 1:
     queries = [0]
+elif test_type == 2:
+    queries = [0, 2, 3, 4, 5]
 
 """ query | Tree_NCut | L2Norm_NCut | KLD_NCut | Tree_topN | L2Norm_topN | KLD_topN """
 # cellResult = cell(length(queries), 19);
@@ -105,23 +107,28 @@ for query in queries:
 
     if sum(vecRel) == 0:
         continue
-    log.info('shape of vecRel: {0}'.format(vecRel.shape))
+    # log.info('shape of vecRel: {0}'.format(vecRel.shape))
     """ 確定與 matlab 結果一樣～ """
     # for i in vecRel:
     #     print(np.round(float(i), 8))
 
+    times = 1
     """ Algorithm: QGC5_QGC(Query-oriented spectral clustering)"""
     if act_QOGC_QGC == 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
+        st_QGC_batch = time.time()
         (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
+        print('QGC_batch {0} use time: {1} s'.format(times, time.time() - st_QGC_batch))
+        times += 1
 
         c_size1 = vecPerform1.sum(axis=0)
         c_size2 = vecPerform2.sum(axis=0)
         entropy_QGC1 = func_entropy(c_size1)
         print('c_size1:', c_size1)
         print('entropy_QGC1:', entropy_QGC1)
-        print('process time: ', time.time() - st)
+        # print('process time: ', time.time() - st)
+
         # entropy_QGC1 = funcEntropy(c_size1')
         # entropy_QGC2 = funcEntropy(c_size2')
 
@@ -144,3 +151,4 @@ for query in queries:
     #     entropy_QGC1 = 0;
     #     entropy_QGC2 = 0;
     #     entropy_QGC3 = 0;
+print('total process time: ', time.time() - st)

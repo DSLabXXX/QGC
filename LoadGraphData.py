@@ -1,6 +1,7 @@
-from scipy.sparse import coo_matrix, csr_matrix
+from scipy.sparse import coo_matrix, csr_matrix, spdiags, find
 import numpy as np
 from spIdentityMinus import csr_zero_rows, csr_row_set_nz_to_val
+from sp_normalize import matlab_sigmoid
 import time
 import math
 
@@ -116,18 +117,37 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
     print('matLargeThan1.nnz:\n', matLargeThan1.nnz)
 
     if graphtype == 't':
+        """ graph T x T """
         tmp = np.sum(matLargeThan1, axis=1)
         tmp = tmp.reshape(tmp.shape[0]).tolist()[0]
         vecItem_pop = np.array([math.log2(i+2) for i in tmp])
         """ 除完會變成ndarray.matrix FK """
         matIT /= vecItem_pop.reshape(vecItem_pop.shape[0], 1)
         matIT = csr_matrix(matIT)
-        # print('matIT.shape:\n{0}\nmatIT /= vecItem_pop:\n{1}'.format(matIT.shape, matIT))
-
-        """ 03/08 寫到這 QQ """
         matrixVertex = matIT.T * matIT
+        print('matrixVertex:\n', matrixVertex.shape)
+    elif graphtype == 'i':
+        """ graph I x I """
+        # vecTag_pop = log2(sum(matLargeThan1, 1) + 2)
+        # matIT = bsxfun( @ rdivide, matIT, vecTag_pop)
+        # matrixVertex = sparse(matIT * matIT')
 
+    # matrixTrans = matrixVertex - diag(diag(matrixVertex), 0)
+    n = matrixVertex.shape[0]
+    matrixTrans = matrixVertex - spdiags(matrixVertex.diagonal(), 0, n, n, format=None)
+    matrixTrans = matrixTrans.multiply(matrixTrans)
+    mT_i, mT_j, mT_s = find(matrixTrans)
 
+    if graphtype == 't':
+        """ for tag recommendation """
+        # matG = 2 * sparse(mT_i, mT_j, sigmf(mT_s, [50 0]))
+        matG = 2 * coo_matrix((matlab_sigmoid(mT_s, 50, 0), (mT_i, mT_j))).tocsr()
+    elif graphtype == 'i':
+        """ for artist recommendation """
+        # matG = 2 * sparse(mT_i, mT_j, sigmf(mT_s, [80 0]))
+    n = matG.shape[0]
+    e = matG.nnz
+    return matG, n, e
 
 if __name__ == '__main__':
     load_graph_UIT('/home/c11tch/workspace/PycharmProjects/QGC/TestData/tags.dat',

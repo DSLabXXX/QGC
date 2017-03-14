@@ -88,7 +88,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     # matD = spdiags(vecD[:], 0, N, N)
     # log.debug('matD:\n{0}'.format(matD))
     vecRD = sum(matR * (matG * matR)).T
-    log.debug('vecRD:\n{0}'.format(vecRD))
+    # log.debug('vecRD:\n{0}'.format(vecRD))
 
     vec_val = vecRD.toarray()
 
@@ -107,7 +107,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         vecRD_sqrt[idx] = 0
 
     matRD_sqrt = spdiags(vecRD_sqrt[:], 0, N, N)
-    log.debug('matRD_sqrt:\n{0}'.format(matRD_sqrt))
+    # log.debug('matRD_sqrt:\n{0}'.format(matRD_sqrt))
 
     matG_SC = matR * matG * matR
     matG_SC = matRD_sqrt * matG_SC * matRD_sqrt
@@ -151,23 +151,23 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         clustering_time += 1
         """ Minimize the objective function by using Langrange multiplier """
         rel /= (rel.transpose().dot(rel)) ** 0.5
-        log.info('rel.shape: {0}'.format(rel.shape))
+        # log.info('rel.shape: {0}'.format(rel.shape))
 
         eigVal, eigVec = eigsh(A, maxiter=maxitr, which='LA', k=H)
         eigVal = np.diag(eigVal)
 
-        log.debug('eigVal\n{0}'.format(eigVal))
-        log.debug('eigVec\n{0}'.format(eigVec))
+        # log.debug('eigVal\n{0}'.format(eigVal))
+        # log.debug('eigVec\n{0}'.format(eigVec))
 
         weight_eigvec = eigVec - np.dot(rel, np.dot(rel.T, eigVec))
-        log.info('finish eigenmaps => QGCB 1')
+        # log.info('finish eigenmaps => QGCB 1')
 
         """ ----------------- check line ------------------------------------------------ """
 
         """ Label assignment  """
-        log.debug('(eigVal + 10e-5)\n{0}'.format(eigVal + 10e-5))
+        # log.debug('(eigVal + 10e-5)\n{0}'.format(eigVal + 10e-5))
         weight_eigvec = np.dot(weight_eigvec, (eigVal + 10e-5))
-        log.info('weight_eigvec\n{0}'.format(weight_eigvec))
+        # log.info('weight_eigvec\n{0}'.format(weight_eigvec))
         (oPhi, K) = VectorClustering(weight_eigvec, K, threshold)
 
         """ ↓↓↓↓↓↓↓↓↓↓↓↓ 0210 HERE  ↓↓↓↓↓↓↓↓↓↓↓↓ """

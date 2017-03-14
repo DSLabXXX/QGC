@@ -45,7 +45,7 @@ def VectorClustering(weight_eigvec, K, threshold):
 
     scale_weight_eigvec = np.array([np.dot(i, i.T) for i in weight_eigvec]).reshape(weight_eigvec.shape[0], 1)
     # log.info(scale_weight_eigvec)
-    log.info('scale_weight_eigvec.shape: {0}'.format(scale_weight_eigvec.shape))
+    # log.info('scale_weight_eigvec.shape: {0}'.format(scale_weight_eigvec.shape))
 
     """ Initialize the clustering tree leaves """
     oPhi = weight_eigvec.copy()
@@ -75,7 +75,7 @@ def VectorClustering(weight_eigvec, K, threshold):
         oPhi *= vecZ.reshape(vecZ.shape[0], 1).astype(int)
         # print('oPhi2\n', oPhi)
     matPartitionLabel = np.array(matPartitionLabel).T
-    log.info('matPartitionLabel =\n{0}'.format(matPartitionLabel))
+    # log.info('matPartitionLabel =\n{0}'.format(matPartitionLabel))
 
     """ Initialize the similarity matrix """
     G = matPartitionLabel.shape[1]
@@ -98,8 +98,8 @@ def VectorClustering(weight_eigvec, K, threshold):
 
         centroid2 /= np.linalg.norm(centroid2)
         centroids[i, :] = centroid2
-    log.info('cent_norm\n{0}'.format(cent_norm))
-    log.info('centroids\n{0}'.format(centroids))
+    # log.info('cent_norm\n{0}'.format(cent_norm))
+    # log.info('centroids\n{0}'.format(centroids))
     """ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 有一排數通常都會不一樣 其他皆與matlab寫出來相同 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ """
     """ ----------------- check line ------------------------------------------------ """
     G = centroids.shape[0]

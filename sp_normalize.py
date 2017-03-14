@@ -52,6 +52,7 @@ def SymmetricNomalization(matrix):
     matrixRet = matrixD * matrix * matrixD
     return matrixRet
 
+
 def SCNomalization(matrix):
     valVeretxIDMax = matrix.shape[1]
     vecOne = np.ones((valVeretxIDMax, 1))
@@ -67,6 +68,42 @@ def SCNomalization(matrix):
     matrixC = matrix * matrixD * matrixD
     return matrixRet, matrixC
 
+
+def sigmoid(s):
+    """ sigmoid function """
+    theta = 1.0 / (1.0 + np.exp(-s))
+    return theta
+
+
+def matlab_sigmoid(s, a, c):
+    """ sigmoid function """
+    theta = 1.0 / (1.0 + np.exp(-a*(s-c)))
+    return theta
+
+
+def sigmoid_mat(mat):
+    """ sigmf Matrix將矩陣數值轉為0.5~1之間的值，若無相關則為0 """
+    vec_val = mat[mat.nonzero()]
+    """ 非零的值超過1個才做，否則就使用原矩陣即可，使用.shape[1]避免矩陣格式不同而讀不到nnz的問題 """
+    if vec_val.shape[1] > 0:
+        vec_val = vec_val.tolist()[0]    # 轉為list後面才可計算sigmoid
+        (vecpos_x, vecpos_y) = mat.nonzero()
+        (m, n) = mat.shape
+        vec_average = np.average(vec_val)
+        val_sigmoid_scale = np.std(np.array(vec_val))
+        """ avoid x/0 """
+        if val_sigmoid_scale == 0:
+            val_sigmoid_scale = 1
+        else:
+            """ remove outlier and calculate new std """
+            std_vec_val = [x for x in vec_val if x < (val_sigmoid_scale + vec_average)]
+            val_sigmoid_scale = np.std(np.array(std_vec_val))
+            if val_sigmoid_scale == 0:
+                val_sigmoid_scale = 1
+        """ sigmoid """
+        vec_val = sigmoid(np.array(vec_val) / val_sigmoid_scale)
+        mat = coo_matrix((vec_val, (vecpos_x, vecpos_y)), shape=(m, n))
+    return mat
 
 if __name__ == '__main__':
     a = np.matrix([[0, 5, 3, 1],
