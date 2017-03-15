@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix, find
 from spIdentityMinus import sp_insert_rows
+import time
 
 
 def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, list_m):
@@ -99,7 +100,6 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
     """ Ranking for each cluster """
     # eigIndex = insertrows(weight_eigvec, zeros(1, size(weight_eigvec, 2)), query - 1)
     eigIndex = sp_insert_rows(weight_eigvec, np.zeros((1, weight_eigvec.shape[1])), query).tocsr()
-    # print('eigIndex:\n', eigIndex.todense())
 
     if rank_type == 'rel':
         pass

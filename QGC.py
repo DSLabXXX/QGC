@@ -6,6 +6,7 @@ from spIdentityMinus import del_sp_row_col, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator
 from VectorClustering import VectorClustering
 from QOCut import QOCut
+import time
 
 log = logging.getLogger('test.QGC')
 np.set_printoptions(threshold=100000, linewidth=1000)
@@ -15,11 +16,12 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
     rank_type = 'eigXrel'
     """ QGC without clustering balance constraint """
     ok = False
-    time = 0
-    while not ok and time < 5:
-        time += 1
-
+    times = 0
+    while not ok and times < 5:
+        times += 1
+        st_QGC = time.time()
         (weight_eigvec, vecQ) = QGC(matG, maxitr, query, K, 3, vecRel, 1, -0.02, 100)
+        print('QGC_batch > QGC : {0} s'.format(time.time() - st_QGC))
 
         if len(M) > 1:
             print('還沒做完1')
@@ -36,7 +38,9 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
             print('還沒做完2')
         else:
             # (NCut_BestRel, vecBestPerform, vecPerform1) = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type)
+            st_QOCut= time.time()
             (NCut_BestRel2, vecBestPerform2, vecPerform2) = QOCut(matG, N, query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type, [])
+            print('QGC_Batch > QOCUT : {0} s'.format(time.time() - st_QOCut))
         vecNcut_rel2 = [NCut_BestRel2]
 
         if len(vecQ.sum(axis=0).nonzero()[0]) == K:
@@ -63,6 +67,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     :return: weight_eigvec :
     :return: vecQ :
     """
+
     N = matG.shape[0]
     oPhi = 0
     weight_eigvec = 0
@@ -76,21 +81,22 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     # 檢查 vecRel需為 1*n 才能進 spdiags()
     if vecRel.shape[0] != 1:
         vecRel = vecRel.reshape(1, vecRel.shape[0])
-
+    # st_test = time.time()
     matR = spdiags(vecRel[:], 0, N, N)
-
+    # st_test1 = time.time()
     """ 轉回來 """
     vecRel = vecRel.reshape(vecRel.shape[1], 1)
 
-    # log.debug('matR:\n{0}'.format(matR))
-    vecD = sum(matG)
-    # log.debug('vecD:\n{0}'.format(vecD))
+    """ 沒用到... """
+    # vecD = matG.sum(axis=0)
     # matD = spdiags(vecD[:], 0, N, N)
-    # log.debug('matD:\n{0}'.format(matD))
-    vecRD = sum(matR * (matG * matR)).T
-    # log.debug('vecRD:\n{0}'.format(vecRD))
+    """ 沒用到... """
 
-    vec_val = vecRD.toarray()
+    # vecRD = sum(matR * (matG * matR)).T
+    vecRD = (matR * (matG * matR)).sum(axis=0).T
+
+    vec_val = np.asarray(vecRD)
+    # vec_val = vecRD.toarray()
 
     # vecRD_sqrt = [1. / (x[0] ** 0.5) for x in vec_val]
     """ 忍痛改得超複雜.... """
@@ -144,7 +150,8 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     n = N - q_size
     A = LinearOperator((n, n), matvec=myGG)
 
-    # Run Graph Clustering
+    """ Run Graph Clustering """
+    st_GC = time.time()
     clustering_time = 0
     kmeans_run = True
     while kmeans_run and clustering_time < max_clustering_itr:
@@ -162,20 +169,20 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         weight_eigvec = eigVec - np.dot(rel, np.dot(rel.T, eigVec))
         # log.info('finish eigenmaps => QGCB 1')
 
-        """ ----------------- check line ------------------------------------------------ """
-
         """ Label assignment  """
         # log.debug('(eigVal + 10e-5)\n{0}'.format(eigVal + 10e-5))
         weight_eigvec = np.dot(weight_eigvec, (eigVal + 10e-5))
         # log.info('weight_eigvec\n{0}'.format(weight_eigvec))
+        st_vc = time.time()
         (oPhi, K) = VectorClustering(weight_eigvec, K, threshold)
+        print('QGC > VectorClustering is : {0} s'.format(time.time() - st_vc))
 
-        """ ↓↓↓↓↓↓↓↓↓↓↓↓ 0210 HERE  ↓↓↓↓↓↓↓↓↓↓↓↓ """
         # sizePhi = sum(oPhi)
         sizePhi = np.sum(oPhi, axis=0).tolist()[0]
         # print('sizePhi:', sizePhi)
         if 0 not in sizePhi:
             kmeans_run = False
+    print('QGC > whole Graph Clustering PT : {0} s'.format(time.time() - st_GC))
 
     """ Insert the query into the clustering result """
     if query >= 0:
@@ -184,7 +191,6 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
         # print('vecQQQQQQ"\n', vecQ.todense())
     else:
         vecQ = oPhi
-
     return weight_eigvec, vecQ
 
 

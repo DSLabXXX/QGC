@@ -112,15 +112,13 @@ for query in queries:
     # for i in vecRel:
     #     print(np.round(float(i), 8))
 
-    times = 1
     """ Algorithm: QGC5_QGC(Query-oriented spectral clustering)"""
     if act_QOGC_QGC == 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
         st_QGC_batch = time.time()
         (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
-        print('QGC_batch {0} use time: {1} s'.format(times, time.time() - st_QGC_batch))
-        times += 1
+        print('QGC_batch use time: {0} s'.format(time.time() - st_QGC_batch))
 
         c_size1 = vecPerform1.sum(axis=0)
         c_size2 = vecPerform2.sum(axis=0)
@@ -151,4 +149,4 @@ for query in queries:
     #     entropy_QGC1 = 0;
     #     entropy_QGC2 = 0;
     #     entropy_QGC3 = 0;
-print('total process time: ', time.time() - st)
+print('\ntotal process time: ', time.time() - st)
