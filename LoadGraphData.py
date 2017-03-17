@@ -96,8 +96,8 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
         #         csr_row_set_nz_to_val(matIT, idx)
     elif graphtype == 't':
         """ Prune unpopular items """
-        itemFreq = sum(matIT.T).A
-
+        # itemFreq = sum(matIT.T).A
+        itemFreq = np.asarray(matIT.T.sum(axis=0))
         tooSmall = itemFreq < lowerBound
 
         itemFreq[:, tooSmall.nonzero()[1]] = 0

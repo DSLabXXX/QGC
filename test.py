@@ -10,24 +10,24 @@ import time
 from LoadGraphData import load_graph_data, load_graph_UIT
 
 """ ---------------- init log config -------------------"""
-log = logging.getLogger('test')
-log.setLevel(logging.DEBUG)
-
-""" file_hdlr = logging.FileHandler('log/QGC_{0}.log'.format(time.time()))"""
-file_hdlr = logging.FileHandler('log/QGC_0.log')
-file_hdlr.setLevel(logging.DEBUG)
-
-console_hdlr = logging.StreamHandler()
-console_hdlr.setLevel(logging.INFO)
-
-formatter = logging.Formatter('%(levelname)-8s - %(asctime)s - %(name)-12s - %(message)s')
-file_hdlr.setFormatter(formatter)
-console_hdlr.setFormatter(formatter)
-
-log.addHandler(file_hdlr)
-log.addHandler(console_hdlr)
-
-log.info('QGC start')
+# log = logging.getLogger('test')
+# log.setLevel(logging.DEBUG)
+#
+# """ file_hdlr = logging.FileHandler('log/QGC_{0}.log'.format(time.time()))"""
+# file_hdlr = logging.FileHandler('log/QGC_0.log')
+# file_hdlr.setLevel(logging.DEBUG)
+#
+# console_hdlr = logging.StreamHandler()
+# console_hdlr.setLevel(logging.INFO)
+#
+# formatter = logging.Formatter('%(levelname)-8s - %(asctime)s - %(name)-12s - %(message)s')
+# file_hdlr.setFormatter(formatter)
+# console_hdlr.setFormatter(formatter)
+#
+# log.addHandler(file_hdlr)
+# log.addHandler(console_hdlr)
+#
+# log.info('QGC start')
 # ------------------- end log config -----------------------
 
 
@@ -60,7 +60,6 @@ act_QOGC_AC = 0
 act_QOGC_SC = 0
 
 queries = list()
-
 """ load data matG """
 if test_type == 1:
     (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
@@ -87,9 +86,10 @@ elif test_type == 2:
 """ query | Tree_NCut | L2Norm_NCut | KLD_NCut | Tree_topN | L2Norm_topN | KLD_topN """
 # cellResult = cell(length(queries), 19);
 
-
+time_query = list()
 """ Set the queries and their relevance """
 for query in queries:
+    time_test = time.time()
 
     if query < 0:
         continue
@@ -116,16 +116,13 @@ for query in queries:
     if act_QOGC_QGC == 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
-        st_QGC_batch = time.time()
         (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
-        print('QGC_batch use time: {0} s'.format(time.time() - st_QGC_batch))
 
         c_size1 = vecPerform1.sum(axis=0)
         c_size2 = vecPerform2.sum(axis=0)
         entropy_QGC1 = func_entropy(c_size1)
         print('c_size1:', c_size1)
         print('entropy_QGC1:', entropy_QGC1)
-        # print('process time: ', time.time() - st)
 
         # entropy_QGC1 = funcEntropy(c_size1')
         # entropy_QGC2 = funcEntropy(c_size2')
@@ -149,4 +146,8 @@ for query in queries:
     #     entropy_QGC1 = 0;
     #     entropy_QGC2 = 0;
     #     entropy_QGC3 = 0;
-print('\ntotal process time: ', time.time() - st)
+    time_query.append(time.time() - time_test)
+et = time.time()
+print('\ntotal process time no load data: {0} s'.format(et - st))
+print('\ntotal for {2} querys :{0} s\n'
+      'average time for each query: {1} s'.format(np.sum(time_query), np.sum(time_query)/len(time_query), len(time_query)))

@@ -84,7 +84,7 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
         vecPerform_sum = np.dot(np.ones((1, N)), np.multiply(np.tile(vecRel, [1, K]), (matG * vecPerform).A))
         # print('vecPerform_sumvecPerform_sumvecPerform_sum:\n', vecPerform_sum)
 
-        # Normalization
+        """ Normalization """
         # vecPerform_norm = vecPerform ./ np.tile(vecPerform_sum, [N, 1])
         vecPerform_norm = vecPerform / np.tile(vecPerform_sum, [N, 1])
         # print('np.tile(vecPerform_sum, [N, 1]:\n', vecPerform_norm)

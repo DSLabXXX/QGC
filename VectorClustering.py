@@ -44,44 +44,29 @@ def VectorClustering(weight_eigvec, K, threshold):
     H = weight_eigvec.shape[1]
 
     scale_weight_eigvec = np.array([np.dot(i, i.T) for i in weight_eigvec]).reshape(weight_eigvec.shape[0], 1)
-    # log.info(scale_weight_eigvec)
-    # log.info('scale_weight_eigvec.shape: {0}'.format(scale_weight_eigvec.shape))
 
     """ Initialize the clustering tree leaves """
     oPhi = weight_eigvec.copy()
     matPartitionLabel = list()
-    # oPhi = np.array([[0,1,1],[1,1,1],[1,1,1],[1,1,1],[1,1,1]])
-    # a = np.sum((oPhi != 0).sum(0))
-    # print(a)
-    while np.sum((oPhi != 0).sum(0)) > 0:
+    while (oPhi != 0).sum() > 0:
         # find first index of non zero value
         i = np.sum(oPhi, axis=1).nonzero()[0][0]
-        # print('weight_eigvec', weight_eigvec)
-        # print('weight_eigvec[i, :]', weight_eigvec[i, :])
         matMatch = weight_eigvec * weight_eigvec[i, :]
-        # print('matMatch1\n', matMatch)
         matMatch = matMatch > 0
-        # print('matMatch2\n', matMatch)
         vecMatch = np.sum(matMatch, axis=1)
-        # print('vecMatch\n', vecMatch)
         vecMatch = vecMatch >= H
 
-        # print('vecMatch\n', vecMatch.astype(int))
         matPartitionLabel += [vecMatch.astype(int)]
 
         vecZ = vecMatch == 0
-        # print('oPhi\n', oPhi)
-        # print('vecZ\n', vecZ.astype(int))
         oPhi *= vecZ.reshape(vecZ.shape[0], 1).astype(int)
-        # print('oPhi2\n', oPhi)
     matPartitionLabel = np.array(matPartitionLabel).T
-    # log.info('matPartitionLabel =\n{0}'.format(matPartitionLabel))
 
     """ Initialize the similarity matrix """
     G = matPartitionLabel.shape[1]
     cent_norm = np.zeros((G, 1))
     centroids = np.zeros((G, H))
-    variance = np.zeros((G * H, H))
+    # variance = np.zeros((G * H, H))
 
     """ ↓↓↓↓↓↓↓↓↓↓↓↓↓↓ 有一排數通常都會不一樣 其他皆與matlab寫出來相同 ↓↓↓↓↓↓↓↓↓↓↓↓↓↓ """
     """ mean of the top-P nodes to be centroid  """
@@ -103,7 +88,7 @@ def VectorClustering(weight_eigvec, K, threshold):
     """ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ 有一排數通常都會不一樣 其他皆與matlab寫出來相同 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ """
     """ ----------------- check line ------------------------------------------------ """
     G = centroids.shape[0]
-    matClusterSim = np.zeros((G, G))
+    # matClusterSim = np.zeros((G, G))
 
     """ non-model prior """
     matClusterSim = np.dot(centroids, centroids.T)
@@ -120,8 +105,8 @@ def VectorClustering(weight_eigvec, K, threshold):
         Twitter data: matClusterSim >= 0.9
     """
 
-    s = (matClusterSim >= threshold)
-    n = np.sum(s)
+    # s = (matClusterSim >= threshold)
+    # n = np.sum(s)
 
     while (X > K > 0) or (np.sum(matClusterSim >= threshold) > 0 and K == 0):
         """ Choose the most similar eigen vectors and merge them """
@@ -132,11 +117,9 @@ def VectorClustering(weight_eigvec, K, threshold):
             delete column by index max_x and max_y from matPartitionLabel.
             merge them and put in final column.
         """
-        # print('matPartitionLabel before \n', matPartitionLabel)
         matPartitionLabel = np.delete(matPartitionLabel, [max_x, max_y], 1)
         vecMerge = vecMerge.reshape(vecMerge.shape[0], 1)
         matPartitionLabel = np.hstack(([matPartitionLabel, vecMerge]))
-        # print('matPartitionLabelmatPartitionLabelmatPartitionLabel:\n', matPartitionLabel)
 
         """ Update the similarity matrix """
         G = matPartitionLabel.shape[1]
@@ -144,11 +127,10 @@ def VectorClustering(weight_eigvec, K, threshold):
         cent_norm = np.zeros((G, 1))
         for i in range(G):
             x = matPartitionLabel[:, i].nonzero()[0]
-            y = matPartitionLabel[:, i][matPartitionLabel[:, i].nonzero()]  # 疑似用不到
+            # y = matPartitionLabel[:, i][matPartitionLabel[:, i].nonzero()]  # 疑似用不到
 
             if cent_type == 'top-P':
                 """ mean of the top-P nodes to be centroid """
-                # print('scale_weight_eigvec[x]:\n', scale_weight_eigvec[x].T[0])
                 tmp_eigvec = scale_weight_eigvec[x].T[0]
                 if tmp_eigvec.shape[0] >= topP:
                     x1 = np.argpartition(tmp_eigvec, -topP)[-topP:]
@@ -156,13 +138,9 @@ def VectorClustering(weight_eigvec, K, threshold):
                     x1 = np.argpartition(tmp_eigvec, -tmp_eigvec.shape[0])[-tmp_eigvec.shape[0]:]
 
                 centroid2 = np.mean(weight_eigvec[x[x1]], axis=0)
-                # print('weight_eigvec[x[x1]]:\n', weight_eigvec[x[x1]], '\ncentroid2: ', centroid2, )
                 cent_norm[i] = np.linalg.norm(centroid2)
-                # print(cent_norm)
                 centroid2 /= np.linalg.norm(centroid2)
-                # print('centroid2:\n', centroid2)
                 centroids[i] = centroid2
-                # print('centroids:\n', centroids)
         # end for
         matClusterSim = np.zeros(G)
         if cent_type == 'ndist':
@@ -171,15 +149,12 @@ def VectorClustering(weight_eigvec, K, threshold):
             """ non-model prior """
             matClusterSim = np.dot(centroids, centroids.T)
             scale_cluster = np.sqrt(np.diag(matClusterSim))
-            # print('matClusterSim:\n', matClusterSim)
-            # print('scale_cluster.T:\n', scale_cluster.T)
             """ [:,None] 為了做./ matClusterSim = bsxfun(@rdivide, matClusterSim, scale_cluster) """
             matClusterSim /= scale_cluster.T[:, None]
             matClusterSim /= scale_cluster.T
             matClusterSim -= 10 * np.eye(G)
         # end if
         matClusterSim -= np.eye(G)
-        # print('matClusterSim:\n', matClusterSim)
         X = len(matClusterSim)
     # end while
     """
@@ -192,25 +167,21 @@ def VectorClustering(weight_eigvec, K, threshold):
         HAC, and then inner product of data and centroid
     """
     index = np.dot(weight_eigvec, centroids.T)
-    # print('index:\n', index)
+
     scale_centroid = np.diag(np.dot(centroids, centroids.T))
-    # print('scale_centroid:\n', scale_centroid)
+
     index /= np.sqrt(scale_weight_eigvec)
-    # print('index /= np.sqrt(scale_weight_eigvec):\n', index)
     index /= np.sqrt(scale_centroid).T
-    # print('index /= np.sqrt(scale_centroid).T:\n', index)
     y = np.argmax(index, axis=1)
     n = len(y)
-    # print('y:\n', y)
     oPhi = coo_matrix((np.ones(n), (np.arange(n), y)), shape=(n, centroids.shape[1])).tocsr()
-    # print('oPhi:\n', oPhi)
     sum_oPhi = np.sum(oPhi, axis=0).tolist()[0]
-    # print('sum_oPhi:', sum_oPhi)
-    for i in range(len(sum_oPhi)):
-        if sum_oPhi[len(sum_oPhi)-1-i] == 0:
-            print('index of sum_oPhi:', len(sum_oPhi)-1-i)
+    len_so = len(sum_oPhi)
+    for i in range(len_so):
+        if sum_oPhi[len_so - 1 - i] == 0:
+            print('index of sum_oPhi:', len_so - 1 - i)
             # np.delete(oPhi, len(sum_oPhi)-1-i, 1)
-            oPhi = del_sp_col(oPhi, len(sum_oPhi)-1-i)
+            oPhi = del_sp_col(oPhi, len_so - 1 - i)
     K = oPhi.shape[1]
     return oPhi, K
 
