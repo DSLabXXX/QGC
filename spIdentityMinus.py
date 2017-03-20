@@ -21,6 +21,13 @@ def del_sp_row_col(mat, idx):
     return d_row * mat * d_col
 
 
+def del_sp_row_col2(mat, idx):
+    size = mat.shape
+    d_row = mk_eye2(idx, size[0], 1)
+    # d_col = mk_eye2(idx, size[0], 2)
+    return d_row * mat * d_row.T
+
+
 def mk_eye(idx, N, axis_type):
     """
     :param idx: row or col index for delete
@@ -56,6 +63,24 @@ def mk_eye(idx, N, axis_type):
     return s
 
 
+def mk_eye2(n, m, axis_type):
+    """
+
+    :param idx: row or col index for delete
+    :param N: shape[0] of mat
+    :param axis_type: 1: row, 2: col
+    :return:
+    """
+    A = sparse.eye(n, n)
+    B = sparse.csr_matrix((n, m-n))
+    C = sparse.csr_matrix((m-n-1, n+1))
+    D = sparse.eye(m-n-1, m-n-1)
+    if axis_type == 1:
+        return sparse.vstack([sparse.hstack([A, B]), sparse.hstack([C, D])])
+    else:
+        return sparse.vstack([sparse.hstack([A, B]), sparse.hstack([C, D])]).T
+
+
 def sp_insert_rows(mtx_a, mtx_to_insert, idx):
     mtx_tmp_first = mtx_a[:idx, :]
     mtx_tmp_last = mtx_a[idx:, :]
@@ -87,10 +112,11 @@ def csr_row_set_nz_to_val(csr, row, value=0):
 
 
 if __name__ == '__main__':
-    a = sparse.lil_matrix(np.array([[1,2,3],[4,5,6],[7,8,9]])).tocsr()
+    a = sparse.lil_matrix(np.array([[1,2,3,8],[4,5,6,8],[7,8,9,8],[8,8,8,8]])).tocsr()
 
     print('original:\n', a.todense())
-    print('delete col&row by index=1:\n', del_sp_row_col(a, 1).todense())
+    print('111  delete col&row by index=1:\n', del_sp_row_col(a, 1).todense())
+    print('222  delete col&row by index=1:\n', del_sp_row_col2(a, 1).todense())
 
     """ -----------------好像太花時間了 需要找時間改----------------- """
     """
@@ -104,9 +130,12 @@ if __name__ == '__main__':
         use 4.358846187591553s to make (9999999, 10000000) eye mat
     """
     import time
-    n = 200000
+    n = 100000
     st = time.time()
     mk_eye(2, n, 1)
     tt = time.time() - st
-    print('use {0}s to make a {1} eye mat'.format(tt, (n-1, n)))
+    st = time.time()
+    mk_eye2(2, n, 1)
+    tt2 = time.time() - st
+    print('make a {0} eye\n eye 1 use {1} s\n eye 2 use {2} s'.format((n-1, n), tt, tt2))
     """ -----------------好像太花時間了 需要找時間改----------------- """

@@ -61,9 +61,9 @@ act_QOGC_SC = 0
 
 queries = list()
 """ load data matG """
-if test_type == 1:
+if test_type is 1:
     (matG, n, e) = load_graph_data('TestData/simpleGraph_new.txt')
-elif test_type == 2:
+elif test_type is 2:
     (matG, n, e) = load_graph_UIT('TestData/tags.dat', 'TestData/user_taggedartists.dat', 't', 5, 10)
 
 
@@ -74,14 +74,14 @@ matA, matB = SCNomalization(matG)
 matI = eye(n, n)
 xi = 0.2
 matA = (1-xi) * matA + xi * matI
-# print(matA) # 看起來應該是跟matlab 結果一樣的～
 
 
 """ Test """
-if test_type == 1:
+if test_type is 1:
     queries = [0]
-elif test_type == 2:
+elif test_type is 2:
     queries = [0, 2, 3, 4, 5]
+    # queries = [0, 2, 3, 4, 5, 18, 20, 22, 31, 38, 40, 55, 61, 66, 74, 77, 78, 79, 80, 81, 82, 85, 86]
 
 """ query | Tree_NCut | L2Norm_NCut | KLD_NCut | Tree_topN | L2Norm_topN | KLD_topN """
 # cellResult = cell(length(queries), 19);
@@ -99,13 +99,15 @@ for query in queries:
     #     continue
 
     """ Get the relevance vector """
+    t_pagerank = time.time()
     if query >= 0:
         vecRel = oneQ_pagerank(matB, query, 0.5)
         vecRel[query, 0] = 0
     else:
         vecRel = np.ones((n, 0)) / n
+    print('pagerank: {0} s'.format(time.time() - t_pagerank))
 
-    if sum(vecRel) == 0:
+    if vecRel.sum() is 0:
         continue
     # log.info('shape of vecRel: {0}'.format(vecRel.shape))
     """ 確定與 matlab 結果一樣～ """
@@ -113,7 +115,7 @@ for query in queries:
     #     print(np.round(float(i), 8))
 
     """ Algorithm: QGC5_QGC(Query-oriented spectral clustering)"""
-    if act_QOGC_QGC == 1:
+    if act_QOGC_QGC is 1:
         log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
         (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)

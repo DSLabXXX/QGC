@@ -2,7 +2,7 @@ from scipy.sparse import spdiags
 import logging.config
 from scipy.sparse import csr_matrix
 import numpy as np
-from spIdentityMinus import del_sp_row_col, sp_insert_rows
+from spIdentityMinus import del_sp_row_col, del_sp_row_col2, sp_insert_rows
 from scipy.sparse.linalg import eigsh, LinearOperator
 from VectorClustering import VectorClustering
 from QOCut import QOCut
@@ -40,7 +40,7 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
             (NCut_BestRel2, vecBestPerform2, vecPerform2) = QOCut(matG, N, query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type, [])
         vecNcut_rel2 = [NCut_BestRel2]
 
-        if len(vecQ.sum(axis=0).nonzero()[0]) == K:
+        if len(vecQ.sum(axis=0).nonzero()[0]) is K:
             ok = True
     NCut_BestRel, vecBestPerform, vecPerform1 = NCut_BestRel2, vecBestPerform2, vecPerform2
     return weight_eigvec, vecQ, vecPerform1, vecBestPerform, NCut_BestRel, vecPerform2, vecBestPerform2, NCut_BestRel2
@@ -119,14 +119,15 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     if query >= 0:
         q_size = 1
 
-        matG_SC = del_sp_row_col(matG_SC, query)
+        # matG_SC = del_sp_row_col(matG_SC, query)
+        matG_SC = del_sp_row_col2(matG_SC, query)
 
         rel = vecRel.copy()
-        rel[query, :] = 0
+        # rel[query, :] = 0
         rel = np.delete(rel, query, axis=0)
     else:
         q_size = 0
-        rel = vecRel
+        rel = vecRel.copy()
 
     def myGG(x):
         tmp = x - np.dot(rel, (np.dot(rel.T, x)))
@@ -139,7 +140,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
 
     """ Run Graph Clustering """
     clustering_time = 0
-    kmeans_run = True
+    kmeans_run = 1
     while kmeans_run and clustering_time < max_clustering_itr:
         clustering_time += 1
         """ Minimize the objective function by using Langrange multiplier """

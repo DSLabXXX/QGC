@@ -81,7 +81,8 @@ def VectorClustering(weight_eigvec, K, threshold):
             centroid2 = np.mean(we, axis=1)
         cent_norm[i] = np.linalg.norm(centroid2)
 
-        centroid2 /= np.linalg.norm(centroid2)
+        # centroid2 /= np.linalg.norm(centroid2)
+        centroid2 /= cent_norm[i]
         centroids[i, :] = centroid2
     # log.info('cent_norm\n{0}'.format(cent_norm))
     # log.info('centroids\n{0}'.format(centroids))
@@ -96,7 +97,7 @@ def VectorClustering(weight_eigvec, K, threshold):
     matClusterSim /= scale_cluster.T[:, None]
     matClusterSim /= scale_cluster.T
     matClusterSim -= np.eye(G)
-    X = len(matClusterSim)
+    X = matClusterSim.shape[0]
 
     """
         Hierarchical agglomerative clustering greedily
@@ -108,7 +109,7 @@ def VectorClustering(weight_eigvec, K, threshold):
     # s = (matClusterSim >= threshold)
     # n = np.sum(s)
 
-    while (X > K > 0) or (np.sum(matClusterSim >= threshold) > 0 and K == 0):
+    while (K is 0 and np.sum(matClusterSim >= threshold) > 0) or (X > K > 0):
         """ Choose the most similar eigen vectors and merge them """
         (max_v, max_x, max_y) = MaxOfMatrix(matClusterSim)
         vecMerge = matPartitionLabel[:, max_x] + matPartitionLabel[:, max_y]
@@ -129,7 +130,7 @@ def VectorClustering(weight_eigvec, K, threshold):
             x = matPartitionLabel[:, i].nonzero()[0]
             # y = matPartitionLabel[:, i][matPartitionLabel[:, i].nonzero()]  # 疑似用不到
 
-            if cent_type == 'top-P':
+            if cent_type is 'top-P':
                 """ mean of the top-P nodes to be centroid """
                 tmp_eigvec = scale_weight_eigvec[x].T[0]
                 if tmp_eigvec.shape[0] >= topP:
@@ -139,11 +140,11 @@ def VectorClustering(weight_eigvec, K, threshold):
 
                 centroid2 = np.mean(weight_eigvec[x[x1]], axis=0)
                 cent_norm[i] = np.linalg.norm(centroid2)
-                centroid2 /= np.linalg.norm(centroid2)
+                centroid2 /= cent_norm[i]
                 centroids[i] = centroid2
         # end for
         matClusterSim = np.zeros(G)
-        if cent_type == 'ndist':
+        if cent_type is 'ndist':
             pass
         else:
             """ non-model prior """
@@ -155,7 +156,7 @@ def VectorClustering(weight_eigvec, K, threshold):
             matClusterSim -= 10 * np.eye(G)
         # end if
         matClusterSim -= np.eye(G)
-        X = len(matClusterSim)
+        X = matClusterSim.shape[0]
     # end while
     """
         Determine which cluster a data belongs to
@@ -173,12 +174,12 @@ def VectorClustering(weight_eigvec, K, threshold):
     index /= np.sqrt(scale_weight_eigvec)
     index /= np.sqrt(scale_centroid).T
     y = np.argmax(index, axis=1)
-    n = len(y)
+    n = y.shape[0]
     oPhi = coo_matrix((np.ones(n), (np.arange(n), y)), shape=(n, centroids.shape[1])).tocsr()
     sum_oPhi = np.sum(oPhi, axis=0).tolist()[0]
     len_so = len(sum_oPhi)
     for i in range(len_so):
-        if sum_oPhi[len_so - 1 - i] == 0:
+        if sum_oPhi[len_so - 1 - i] is 0:
             print('index of sum_oPhi:', len_so - 1 - i)
             # np.delete(oPhi, len(sum_oPhi)-1-i, 1)
             oPhi = del_sp_col(oPhi, len_so - 1 - i)

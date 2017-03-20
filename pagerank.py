@@ -11,7 +11,8 @@ def oneQ_pagerank(mat, q, alpha):
         vecP = np.zeros((n, 1))
         vecP[q, 0] = 1
 
-    vecR = vecP
+    vecR = vecP.copy()
+    vecP *= alpha
     for i in range(50):
-        vecR = (1-alpha) * (mat * vecR) + alpha * vecP
+        vecR = (1-alpha) * (mat * vecR) + vecP
     return vecR
