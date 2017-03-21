@@ -38,7 +38,7 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
         else:
             # (NCut_BestRel, vecBestPerform, vecPerform1) = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type)
             (NCut_BestRel2, vecBestPerform2, vecPerform2) = QOCut(matG, N, query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type, [])
-        vecNcut_rel2 = [NCut_BestRel2]
+        # vecNcut_rel2 = [NCut_BestRel2]
 
         if len(vecQ.sum(axis=0).nonzero()[0]) is K:
             ok = True
@@ -72,7 +72,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     """ Initial setting """
     max_clustering_itr = 200  # 1  # 200
 
-    zeta = 0.05
+    # zeta = 0.05
     q_size = 1
 
     # 檢查 vecRel需為 1*n 才能進 spdiags()

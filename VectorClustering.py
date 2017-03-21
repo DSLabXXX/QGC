@@ -36,7 +36,7 @@ def VectorClustering(weight_eigvec, K, threshold):
     :param threshold:
     :return:
     """
-    p = 10
+    # p = 10
     topP = 3
     centroid_types = ['mean', 'power mean', 'top-P', 'ndist']
     cent_type = centroid_types[2]

@@ -80,8 +80,9 @@ matA = (1-xi) * matA + xi * matI
 if test_type is 1:
     queries = [0]
 elif test_type is 2:
-    queries = [0, 2, 3, 4, 5]
-    # queries = [0, 2, 3, 4, 5, 18, 20, 22, 31, 38, 40, 55, 61, 66, 74, 77, 78, 79, 80, 81, 82, 85, 86]
+    # queries = [0, 2, 3, 4, 5, 18, 20, 22, 31, 38]
+    queries = [0, 2, 3, 4, 5, 18, 20, 22, 31, 38, 40, 55, 61, 66, 74, 77, 78, 79, 80, 81]
+    # queries = [0, 2, 3, 4, 5, 18, 20, 22, 31, 38, 40, 55, 61, 66, 74, 77, 78, 79, 80, 81]
 
 """ query | Tree_NCut | L2Norm_NCut | KLD_NCut | Tree_topN | L2Norm_topN | KLD_topN """
 # cellResult = cell(length(queries), 19);
@@ -99,13 +100,11 @@ for query in queries:
     #     continue
 
     """ Get the relevance vector """
-    t_pagerank = time.time()
     if query >= 0:
         vecRel = oneQ_pagerank(matB, query, 0.5)
         vecRel[query, 0] = 0
     else:
         vecRel = np.ones((n, 0)) / n
-    print('pagerank: {0} s'.format(time.time() - t_pagerank))
 
     if vecRel.sum() is 0:
         continue
@@ -116,15 +115,15 @@ for query in queries:
 
     """ Algorithm: QGC5_QGC(Query-oriented spectral clustering)"""
     if act_QOGC_QGC is 1:
-        log.info('Run Query-oriented spectral clustering algorithm...')
+        # log.info('Run Query-oriented spectral clustering algorithm...')
         # QGC(matG, maxitr, query, K, 3, vecRel, 0, -0.02, 100)
         (iPhi, vecQ, vecPerform1, QGC_vecBestPerform, QGC_NCut_BestRel, vecPerform2, QGC_vecBestPerform2, QGC_NCut_BestRel2) = QGC_batch(matG, maxitr, vecRel, n, query, K, 3, topN)
 
         c_size1 = vecPerform1.sum(axis=0)
         c_size2 = vecPerform2.sum(axis=0)
         entropy_QGC1 = func_entropy(c_size1)
-        print('c_size1:', c_size1)
-        print('entropy_QGC1:', entropy_QGC1)
+        print('c_size1:\n', c_size1)
+        print('entropy_QGC1:\n', entropy_QGC1)
 
         # entropy_QGC1 = funcEntropy(c_size1')
         # entropy_QGC2 = funcEntropy(c_size2')
@@ -151,5 +150,6 @@ for query in queries:
     time_query.append(time.time() - time_test)
 et = time.time()
 print('\ntotal process time no load data: {0} s'.format(et - st))
+print(time_query)
 print('\ntotal for {2} querys :{0} s\n'
       'average time for each query: {1} s'.format(np.sum(time_query), np.sum(time_query)/len(time_query), len(time_query)))

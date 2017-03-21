@@ -85,15 +85,13 @@ def QOCut(matG, N, query, weight_eigvec, vecQ, func_type, vecRel, rank_type, lis
         # print('vecPerform_sumvecPerform_sumvecPerform_sum:\n', vecPerform_sum)
 
         """ Normalization """
-        # vecPerform_norm = vecPerform ./ np.tile(vecPerform_sum, [N, 1])
         vecPerform_norm = vecPerform / np.tile(vecPerform_sum, [N, 1])
-        # print('np.tile(vecPerform_sum, [N, 1]:\n', vecPerform_norm)
 
         """ Calculate Cut """
         vecTemp = np.tile(vecRel, [1, K]) * (matG * vecPerform_norm).A - 10e5 * vecPerform_norm
         vecTemp[vecTemp < 0] = 0
         # print('vecTemp:\n', vecTemp)
-        NCut_rel = np.sum(np.sum(vecTemp))
+        NCut_rel = np.sum(vecTemp)
         # print('NCut_rel:', NCut_rel)
     # end if
 

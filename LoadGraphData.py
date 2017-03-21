@@ -47,7 +47,7 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
     % upperbound = 1
     """
     """ Read file and Construct matrices """
-    list_u = list()
+    # list_u = list()
     list_i = list()
     list_t = list()
     setTagID = set()
@@ -71,7 +71,7 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
     # ni = max(list_i) + 1
     # nt = max(list_t) + 1
     matIT = coo_matrix((np.ones(len(list_t)), (list_i, list_t))).tocsr()
-    print(matIT.shape)
+    # print(matIT.shape)
 
     """ for testing """
     # matIT = csr_matrix([[6, 0, 0, 0, 17], [4, 5, 0, 6, 4], [0, 2, 3, 1, 3],
@@ -113,8 +113,6 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
 
     """ reweight the influence of a tag / item based on TFIDF. """
     matLargeThan1 = matIT > 0
-    print('matIT.nnz:\n', matIT.nnz)
-    print('matLargeThan1.nnz:\n', matLargeThan1.nnz)
 
     if graphtype == 't':
         """ graph T x T """
@@ -125,7 +123,7 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
         matIT /= vecItem_pop.reshape(vecItem_pop.shape[0], 1)
         matIT = csr_matrix(matIT)
         matrixVertex = matIT.T * matIT
-        print('matrixVertex:\n', matrixVertex.shape)
+        # print('matrixVertex:\n', matrixVertex.shape)
     elif graphtype == 'i':
         """ graph I x I """
         # vecTag_pop = log2(sum(matLargeThan1, 1) + 2)

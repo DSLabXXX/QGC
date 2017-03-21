@@ -13,6 +13,7 @@ def oneQ_pagerank(mat, q, alpha):
 
     vecR = vecP.copy()
     vecP *= alpha
+    beta = 1-alpha
     for i in range(50):
-        vecR = (1-alpha) * (mat * vecR) + vecP
+        vecR = beta * (mat * vecR) + vecP
     return vecR
