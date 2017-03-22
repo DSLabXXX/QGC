@@ -105,10 +105,10 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
 
         """ Prune too popular items """
         threshold = np.mean(itemFreq) + upperbound * np.std(itemFreq)
-        list_to_rm = list()
-        for idx in range(itemFreq.shape[1]):
-            if itemFreq[0, idx] > threshold:
-                list_to_rm.append(idx)
+
+        mask_too_big = (itemFreq > threshold)[0]
+        list_to_rm = [i[0] for i, j in np.ndenumerate(mask_too_big) if j == True]
+
         csr_zero_rows(matIT, list_to_rm)
 
     """ reweight the influence of a tag / item based on TFIDF. """
@@ -117,10 +117,9 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
     if graphtype == 't':
         """ graph T x T """
         tmp = np.sum(matLargeThan1, axis=1)
-        tmp = tmp.reshape(tmp.shape[0]).tolist()[0]
-        vecItem_pop = np.array([math.log2(i+2) for i in tmp])
+        vecItem_pop = np.log2(tmp+2)
         """ 除完會變成ndarray.matrix FK """
-        matIT /= vecItem_pop.reshape(vecItem_pop.shape[0], 1)
+        matIT /= vecItem_pop
         matIT = csr_matrix(matIT)
         matrixVertex = matIT.T * matIT
         # print('matrixVertex:\n', matrixVertex.shape)
@@ -130,7 +129,6 @@ def load_graph_UIT(vetex_filepath, UIT_filepath, graphtype, upperbound, lowerBou
         # matIT = bsxfun( @ rdivide, matIT, vecTag_pop)
         # matrixVertex = sparse(matIT * matIT')
 
-    # matrixTrans = matrixVertex - diag(diag(matrixVertex), 0)
     n = matrixVertex.shape[0]
     matrixTrans = matrixVertex - spdiags(matrixVertex.diagonal(), 0, n, n, format=None)
     matrixTrans = matrixTrans.multiply(matrixTrans)
