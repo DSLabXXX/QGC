@@ -14,7 +14,7 @@ np.set_printoptions(threshold=100000, linewidth=1000)
 
 def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
     rank_type = 'eigXrel'
-    """ QGC without clustering balance constraint """
+    """ QGC with clustering balance constraint """
     ok = False
     times = 0
     len_m = len(M)
@@ -36,7 +36,6 @@ def QGC_batch(matG, maxitr, vecRel, N, query, K, H, M):
         elif M[0] > 0:
             print('還沒做完2')
         else:
-            # (NCut_BestRel, vecBestPerform, vecPerform1) = QOCut(query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type)
             (NCut_BestRel2, vecBestPerform2, vecPerform2) = QOCut(matG, N, query, weight_eigvec, vecQ, 'ncut', vecRel, rank_type, [])
         # vecNcut_rel2 = [NCut_BestRel2]
 
@@ -70,7 +69,7 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     weight_eigvec = 0
 
     """ Initial setting """
-    max_clustering_itr = 200  # 1  # 200
+    max_clustering_itr = 200
 
     # zeta = 0.05
     q_size = 1
@@ -88,32 +87,21 @@ def QGC(matG, maxitr, query, K, H, vecRel, MyLancType, threshold, eta):
     # matD = spdiags(vecD[:], 0, N, N)
     """ 沒用到... """
 
-    # vecRD = sum(matR * (matG * matR)).T
-    vecRD = (matR * (matG * matR)).sum(axis=0).T
+    vecRD = (matR * (matG * matR)).sum(axis=0)
 
     vec_val = np.asarray(vecRD)
-    # vec_val = vecRD.toarray()
 
-    # vecRD_sqrt = [1. / (x[0] ** 0.5) for x in vec_val]
-    """ 忍痛改得超複雜.... """
-    vecRD_sqrt = list()
-    for i in range(vec_val.shape[0]):
-        if vec_val[i][0] > 0:
-            vecRD_sqrt.append(1. / (vec_val[i][0] ** 0.5))
-        else:
-            vecRD_sqrt.append(0)
-    # print('vecRD_sqrt', vecRD_sqrt)
-
-    while np.inf in vecRD_sqrt:
-        idx = vecRD_sqrt.index(np.inf)
-        vecRD_sqrt[idx] = 0
+    vecRD_sqrt = np.reciprocal(np.sqrt(vec_val))
+    if np.inf in vecRD_sqrt:
+        vecRD_sqrt[vecRD_sqrt == np.inf] = 0
 
     matRD_sqrt = spdiags(vecRD_sqrt[:], 0, N, N)
     # log.debug('matRD_sqrt:\n{0}'.format(matRD_sqrt))
 
     matG_SC = matR * matG * matR
     matG_SC = matRD_sqrt * matG_SC * matRD_sqrt
-    matG_SC = 0.5 * (matG_SC + matG_SC.transpose())
+    # matG_SC = 0.5 * (matG_SC + matG_SC.T)
+    matG_SC = (matG_SC + matG_SC.T).multiply(0.5)
 
     """ Query setting """
     if query >= 0:
